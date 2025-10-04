@@ -1,5 +1,5 @@
 # Project docs
 
-##  references
+## references
 
 * https://github.com/civicrm/civicrm-docker

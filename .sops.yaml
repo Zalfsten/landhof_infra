@@ -1,0 +1,3 @@
+creation_rules:
+  - path_regex: \.env$
+    gpg: 60615371FB5A3B9132CEE28CECCBB35F6517209B

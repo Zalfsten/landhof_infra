@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "jeff-hykin.better-dockerfile-syntax",
+    "ms-azuretools.vscode-docker",
+    "formulahendry.docker-explorer",
+    "davidanson.vscode-markdownlint",
+    "ms-vscode-remote.remote-containers"
+  ],
+}
