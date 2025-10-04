@@ -29,6 +29,7 @@
 				"ms-azuretools.vscode-docker",
 				"formulahendry.docker-explorer",
 				"davidanson.vscode-markdownlint",
+				"shipitsmarter.sops-edit"
 			]
 		}
 	},
