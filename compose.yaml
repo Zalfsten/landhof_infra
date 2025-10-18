@@ -1,26 +1,90 @@
 services:
   app:
-    hostname: example
-    image: civicrm/civicrm:latest
+    image: civicrm/civicrm:6.7.1
+    user: www-data:www-data
     ports:
-      - 8000:80 # CiviCRM will be available on port 8000.
+      - 8760:8080 # CiviCRM will be available on port 8760.
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      civicrm-install:
+        condition: service_completed_successfully
     volumes:
-      - private:/var/www/html/private
-      - public:/var/www/html/public
-      - ext:/var/www/html/ext
+      - civicrm_data:/var/www/html
     environment:
       CIVICRM_DB_HOST: db
       CIVICRM_DB_PORT: 3306
       CIVICRM_DB_NAME: civicrm
       CIVICRM_DB_USER: civicrm
       CIVICRM_DB_PASSWORD: ${MYSQL_PASSWORD}
-      # CIVICRM_DSN: mysql://civicrm:${MYSQL_PASSWORD}@db:3306/civicrm # Note: you can also pass database credentials as a DSN.
       CIVICRM_UF_BASEURL: http://localhost:8760
+      APACHE_RUN_USER: www-data
+      APACHE_PORT: 8080
+
+  civicrm-cron:
+    image: civicrm/civicrm:6.7.1
+    user: www-data:www-data
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      civicrm-install:
+        condition: service_completed_successfully
+    volumes:
+      - civicrm_data:/var/www/html
+    environment:
+      CIVICRM_DB_HOST: db
+      CIVICRM_DB_PORT: 3306
+      CIVICRM_DB_NAME: civicrm
+      CIVICRM_DB_USER: civicrm
+      CIVICRM_DB_PASSWORD: ${MYSQL_PASSWORD}
+      CIVICRM_UF_BASEURL: http://localhost:8760
+    command: ["bash", "-c", 
+      "echo '*/5 * * * * cv api Job.execute' > /tmp/civicrm-cron && \
+      crontab /tmp/civicrm-cron && \
+      echo 'CiviCRM Cron job configured:' && \
+      crontab -l && \
+      echo 'Starting cron daemon...' && \
+      cron -f"]
+
+  civicrm-install:
+    image: civicrm/civicrm:6.7.1
+    user: www-data:www-data
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - civicrm_data:/var/www/html
+    command: ["bash", "-c",
+      "echo 'Starting CiviCRM installation as www-data...' && \
+      cv core:install -K -n \
+        --url=http://localhost:8760 \
+        --db=mysql://civicrm:${MYSQL_PASSWORD}@db:3306/civicrm \
+        -m extras.adminUser=admin \
+        -m extras.adminPass=${CIVICRM_ADMIN_PASSWORD} \
+        -m extras.adminEmail=admin@example.com && \
+      chmod 400 /var/www/html/private/civicrm.settings.php && \
+      echo 'Installation completed, configuring additional settings...' && \
+      cv api4 Setting.set +v debug_enabled=0 && \
+      cv api4 Setting.set +v backtrace=0 && \
+      echo 'CiviCRM installation completed successfully!'"]
+    restart: "no"
+  
+      # cv api4 Domain.create values='{\"name\":\"Landhof Organisation\",\"description\":\"Landhof Vereinsmanagement System\"}' && \
+      # cv api4 Setting.create values='{\"display_name_format\":\"%{first_name} %{last_name}\"}' && \
+      # cv api4 Setting.create values='{\"sort_name_format\":\"%{last_name}, %{first_name}\"}' && \
+      # cv api4 Setting.create values='{\"default_from_email_address\":\"landhof@example.com\"}' && \
+      # cv api4 Setting.create values='{\"site_name\":\"Landhof Vereinsmanagement\"}' && \
+      # cv api4 Setting.create values='{\"debug_enabled\":false}' && \
+      # cv api4 Setting.create values='{\"backtrace\":false}' && \
+      # cv api4 MailSettings.create values='{\"name\":\"Landhof Mail\",\"domain\":\"example.com\",\"localpart\":\"landhof\",\"return_path\":\"landhof@example.com\",\"protocol\":\"SMTP\",\"server\":\"localhost\",\"port\":25,\"is_default\":1}' && \
+
   db:
     hostname: db
-    image: mariadb:10.11
+    image: mariadb:12.0.2
     restart: unless-stopped
+    user: mysql:mysql
     volumes:
       - db:/var/lib/mysql
     environment:
@@ -28,8 +92,12 @@ services:
       MYSQL_DATABASE: civicrm
       MYSQL_USER: civicrm
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
 volumes:
-  private:
-  public:
-  ext:
   db:
+  civicrm_data:
