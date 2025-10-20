@@ -21,32 +21,23 @@ services:
       CIVICRM_UF_BASEURL: http://localhost:8760
       APACHE_RUN_USER: www-data
       APACHE_PORT: 8080
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/civicrm/home || [ $? -eq 22 ]"]
+      interval: 5s
+      timeout: 4s
+      start_period: 30s
+      retries: 3
 
   civicrm-cron:
-    image: civicrm/civicrm:6.7.1
-    user: www-data:www-data
+    build: .
     restart: unless-stopped
     depends_on:
-      db:
+      app:
         condition: service_healthy
-      civicrm-install:
-        condition: service_completed_successfully
-    volumes:
-      - civicrm_data:/var/www/html
     environment:
-      CIVICRM_DB_HOST: db
-      CIVICRM_DB_PORT: 3306
-      CIVICRM_DB_NAME: civicrm
-      CIVICRM_DB_USER: civicrm
-      CIVICRM_DB_PASSWORD: ${MYSQL_PASSWORD}
-      CIVICRM_UF_BASEURL: http://localhost:8760
-    command: ["bash", "-c", 
-      "echo '*/5 * * * * cv api Job.execute' > /tmp/civicrm-cron && \
-      crontab /tmp/civicrm-cron && \
-      echo 'CiviCRM Cron job configured:' && \
-      crontab -l && \
-      echo 'Starting cron daemon...' && \
-      cron -f"]
+      CIVICRM_ADMIN_PASSWORD: ${CIVICRM_ADMIN_PASSWORD}
+      CRONTAB: |
+        */5 * * * * curl -s "http://app:8080/civicrm/cron.php?name=admin&pass=${CIVICRM_ADMIN_PASSWORD}&key=${CIVICRM_SITE_KEY}"
 
   civicrm-install:
     image: civicrm/civicrm:6.7.1
@@ -56,15 +47,27 @@ services:
         condition: service_healthy
     volumes:
       - civicrm_data:/var/www/html
+    environment:
+      CIVICRM_ADMIN_PASSWORD: ${CIVICRM_ADMIN_PASSWORD}
+      CIVICRM_CRED_KEYS: ${CIVICRM_CRED_KEYS}
+      CIVICRM_SIGN_KEYS: ${CIVICRM_SIGN_KEYS}
+      CIVICRM_SITE_KEY: ${CIVICRM_SITE_KEY}
     command: ["bash", "-c",
       "echo 'Starting CiviCRM installation as www-data...' && \
       cv core:install -K -n \
         --url=http://localhost:8760 \
         --db=mysql://civicrm:${MYSQL_PASSWORD}@db:3306/civicrm \
+        --lang=de_DE \
         -m extras.adminUser=admin \
         -m extras.adminPass=${CIVICRM_ADMIN_PASSWORD} \
         -m extras.adminEmail=admin@example.com && \
       chmod 400 /var/www/html/private/civicrm.settings.php && \
+      echo 'Patching CIVICRM_SITE_KEY in civicrm.settings.php ...' && \
+      sed -i \"s/define('CIVICRM_SITE_KEY'.*/define('CIVICRM_SITE_KEY', '${CIVICRM_SITE_KEY}');/\" /var/www/html/private/civicrm.settings.php && \
+      echo 'Patching CIVICRM_CRED_KEYS in civicrm.settings.php ...' && \
+      sed -i \"s/define('CIVICRM_CRED_KEYS'.*/define('CIVICRM_CRED_KEYS', '${CIVICRM_CRED_KEYS}');/\" /var/www/html/private/civicrm.settings.php && \
+      echo 'Patching CIVICRM_SIGN_KEYS in civicrm.settings.php ...' && \
+      sed -i \"s/define('CIVICRM_SIGN_KEYS'.*/define('CIVICRM_SIGN_KEYS', '${CIVICRM_SIGN_KEYS}');/\" /var/www/html/private/civicrm.settings.php && \
       echo 'Installation completed, configuring additional settings...' && \
       cv api4 Setting.set +v debug_enabled=0 && \
       cv api4 Setting.set +v backtrace=0 && \
