@@ -1,7 +1,6 @@
 services:
-  app:
-    hostname: civicrm-app
-    image: civicrm/civicrm:6.7.1
+  civicrm-app:
+    build: .
     user: www-data:www-data
     ports:
       - 8760:8080 # CiviCRM will be available on port 8760.
@@ -12,7 +11,9 @@ services:
       civicrm-install:
         condition: service_completed_successfully
     volumes:
-      - civicrm_data:/var/www/html
+      - civicrm_private:/var/www/html/private:rw
+      - civicrm_public:/var/www/html/public:rw
+      - civicrm_ext:/var/www/html/ext:ro
     environment:
       CIVICRM_DB_HOST: db
       CIVICRM_DB_PORT: 3306
@@ -28,9 +29,17 @@ services:
       timeout: 4s
       start_period: 30s
       retries: 3
+    networks:
+      - app-db
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
 
   civicrm-cron:
-    hostname: civicrm-cron
     build: .
     user: www-data:www-data
     restart: unless-stopped
@@ -40,7 +49,9 @@ services:
       civicrm-install:
         condition: service_completed_successfully
     volumes:
-      - civicrm_data:/var/www/html
+      - civicrm_private:/var/www/html/private:rw
+      - civicrm_public:/var/www/html/public:rw
+      - civicrm_ext:/var/www/html/ext:ro
     environment:
       CIVICRM_DB_HOST: db
       CIVICRM_DB_PORT: 3306
@@ -51,6 +62,8 @@ services:
     command:
       - supercronic
       - -passthrough-logs
+      - -log-level
+      - debug
       - /tmp/crontab
     healthcheck:
       test: ["CMD-SHELL", "pgrep supercronic > /dev/null || exit"]
@@ -58,22 +71,32 @@ services:
       timeout: 4s
       start_period: 4s
       retries: 3
+    networks:
+      - cron-db
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
 
   civicrm-install:
-    hostname: civicrm-install
-    image: civicrm/civicrm:6.7.1
+    build: .
     user: www-data:www-data
     depends_on:
       db:
         condition: service_healthy
     volumes:
-      - civicrm_data:/var/www/html
+      - civicrm_private:/var/www/html/private:rw
+      - civicrm_public:/var/www/html/public:rw
+      - civicrm_ext:/var/www/html/ext:rw
     environment:
       CIVICRM_ADMIN_PASSWORD: ${CIVICRM_ADMIN_PASSWORD}
       CIVICRM_CRED_KEYS: ${CIVICRM_CRED_KEYS}
       CIVICRM_SIGN_KEYS: ${CIVICRM_SIGN_KEYS}
       CIVICRM_SITE_KEY: ${CIVICRM_SITE_KEY}
-    command: ["bash", "-c",
+    entrypoint: ["bash", "-c",
       "echo 'Starting CiviCRM installation as www-data...' && \
       cv core:install -K -n \
         --url=http://localhost:8760 \
@@ -94,6 +117,15 @@ services:
       cv api4 Setting.set +v backtrace=0 && \
       echo 'CiviCRM installation completed successfully!'"]
     restart: "no"
+    networks:
+      - install-db
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
   
       # cv api4 Domain.create values='{\"name\":\"Landhof Organisation\",\"description\":\"Landhof Vereinsmanagement System\"}' && \
       # cv api4 Setting.create values='{\"display_name_format\":\"%{first_name} %{last_name}\"}' && \
@@ -122,6 +154,20 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    networks:
+      - app-db
+      - cron-db
+      - install-db
+    cap_drop:
+      - ALL
+
 volumes:
   db:
-  civicrm_data:
+  civicrm_private:
+  civicrm_public:
+  civicrm_ext:
+
+networks:
+  app-db:
+  cron-db:
+  install-db:
