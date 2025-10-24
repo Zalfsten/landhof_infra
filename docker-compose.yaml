@@ -1,5 +1,6 @@
 services:
   app:
+    hostname: civicrm-app
     image: civicrm/civicrm:6.7.1
     user: www-data:www-data
     ports:
@@ -29,17 +30,37 @@ services:
       retries: 3
 
   civicrm-cron:
+    hostname: civicrm-cron
     build: .
+    user: www-data:www-data
     restart: unless-stopped
     depends_on:
-      app:
+      db:
         condition: service_healthy
+      civicrm-install:
+        condition: service_completed_successfully
+    volumes:
+      - civicrm_data:/var/www/html
     environment:
-      CIVICRM_ADMIN_PASSWORD: ${CIVICRM_ADMIN_PASSWORD}
-      CRONTAB: |
-        */5 * * * * curl -s "http://app:8080/civicrm/cron.php?name=admin&pass=${CIVICRM_ADMIN_PASSWORD}&key=${CIVICRM_SITE_KEY}"
+      CIVICRM_DB_HOST: db
+      CIVICRM_DB_PORT: 3306
+      CIVICRM_DB_NAME: civicrm
+      CIVICRM_DB_USER: civicrm
+      CIVICRM_DB_PASSWORD: ${MYSQL_PASSWORD}
+      CIVICRM_UF_BASEURL: http://localhost:8760
+    command:
+      - supercronic
+      - -passthrough-logs
+      - /tmp/crontab
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep supercronic > /dev/null || exit"]
+      interval: 5s
+      timeout: 4s
+      start_period: 4s
+      retries: 3
 
   civicrm-install:
+    hostname: civicrm-install
     image: civicrm/civicrm:6.7.1
     user: www-data:www-data
     depends_on:
