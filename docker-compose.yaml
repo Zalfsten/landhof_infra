@@ -10,10 +10,12 @@ services:
         condition: service_healthy
       civicrm-install:
         condition: service_completed_successfully
+    read_only: true
     volumes:
       - civicrm_private:/var/www/html/private:rw
       - civicrm_public:/var/www/html/public:rw
       - civicrm_ext:/var/www/html/ext:ro
+      - apache2_run:/var/run/apache2:rw
     environment:
       CIVICRM_DB_HOST: db
       CIVICRM_DB_PORT: 3306
@@ -33,11 +35,10 @@ services:
       - app-db
     cap_drop:
       - ALL
-    cap_add:
-      - CHOWN
-      - SETUID
-      - SETGID
-      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
 
   civicrm-cron:
     build: .
@@ -48,6 +49,7 @@ services:
         condition: service_healthy
       civicrm-install:
         condition: service_completed_successfully
+    read_only: true
     volumes:
       - civicrm_private:/var/www/html/private:rw
       - civicrm_public:/var/www/html/public:rw
@@ -71,11 +73,10 @@ services:
       - cron-db
     cap_drop:
       - ALL
-    cap_add:
-      - CHOWN
-      - SETUID
-      - SETGID
-      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
 
   civicrm-install:
     build: .
@@ -83,6 +84,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    read_only: true
     volumes:
       - civicrm_private:/var/www/html/private:rw
       - civicrm_public:/var/www/html/public:rw
@@ -117,11 +119,10 @@ services:
       - install-db
     cap_drop:
       - ALL
-    cap_add:
-      - CHOWN
-      - SETUID
-      - SETGID
-      - DAC_OVERRIDE
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
   
       # cv api4 Domain.create values='{\"name\":\"Landhof Organisation\",\"description\":\"Landhof Vereinsmanagement System\"}' && \
       # cv api4 Setting.create values='{\"display_name_format\":\"%{first_name} %{last_name}\"}' && \
@@ -137,8 +138,10 @@ services:
     image: mariadb:12.0.2
     restart: unless-stopped
     user: mysql:mysql
+    read_only: true
     volumes:
-      - db:/var/lib/mysql
+      - db:/var/lib/mysql:rw
+      - mysqld_run:/run/mysqld:rw
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: civicrm
@@ -156,9 +159,15 @@ services:
       - install-db
     cap_drop:
       - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
 
 volumes:
   db:
+  mysqld_run:
+  apache2_run:
   civicrm_private:
   civicrm_public:
   civicrm_ext:
