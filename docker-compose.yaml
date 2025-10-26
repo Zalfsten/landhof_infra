@@ -59,12 +59,8 @@ services:
       CIVICRM_DB_USER: civicrm
       CIVICRM_DB_PASSWORD: ${MYSQL_PASSWORD}
       CIVICRM_UF_BASEURL: http://localhost:8760
-    command:
-      - supercronic
-      - -passthrough-logs
-      - -log-level
-      - debug
-      - /tmp/crontab
+    entrypoint: ["/run-cron.sh"]
+    command: []
     healthcheck:
       test: ["CMD-SHELL", "pgrep supercronic > /dev/null || exit"]
       interval: 5s
