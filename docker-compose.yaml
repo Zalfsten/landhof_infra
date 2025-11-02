@@ -1,21 +1,108 @@
 services:
+  # civicrm-app:
+  #   build: .
+  #   user: www-data:www-data
+  #   ports:
+  #     - 8760:8080 # CiviCRM will be available on port 8760.
+  #   restart: unless-stopped
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     civicrm-install:
+  #       condition: service_completed_successfully
+  #   read_only: true
+  #   volumes:
+  #     - civicrm_private:/var/www/html/private:rw
+  #     - civicrm_public:/var/www/html/public:rw
+  #     - civicrm_ext:/var/www/html/ext:ro
+  #     - apache2_run:/var/run/apache2:rw
+  #   environment:
+  #     CIVICRM_DB_HOST: db
+  #     CIVICRM_DB_PORT: 3306
+  #     CIVICRM_DB_NAME: civicrm
+  #     CIVICRM_DB_USER: civicrm
+  #     CIVICRM_DB_PASSWORD: ${MYSQL_PASSWORD}
+  #     CIVICRM_UF_BASEURL: http://localhost:8760
+  #     APACHE_RUN_USER: www-data
+  #     APACHE_PORT: 8080
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -f http://localhost:8080/civicrm/home || [ $? -eq 22 ]"]
+  #     interval: 5s
+  #     timeout: 4s
+  #     start_period: 30s
+  #     retries: 3
+  #   networks:
+  #     - app-db
+  #   cap_drop:
+  #     - ALL
+  #   security_opt:
+  #     - no-new-privileges:true
+  #   tmpfs:
+  #     - /tmp
+
+    # civicrm-install:
+    # build: .
+    # user: www-data:www-data
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
+    # read_only: true
+    # volumes:
+    #   - civicrm_private:/var/www/html/private:rw
+    #   - civicrm_public:/var/www/html/public:rw
+    #   - civicrm_ext:/var/www/html/ext:rw
+    # environment:
+    #   CIVICRM_ADMIN_PASSWORD: ${CIVICRM_ADMIN_PASSWORD}
+    #   CIVICRM_CRED_KEYS: ${CIVICRM_CRED_KEYS}
+    #   CIVICRM_SIGN_KEYS: ${CIVICRM_SIGN_KEYS}
+    #   CIVICRM_SITE_KEY: ${CIVICRM_SITE_KEY}
+    # entrypoint: ["bash", "-c",
+    #   "echo 'Starting CiviCRM installation as www-data...' && \
+    #   cv core:install -K -n \
+    #     --url=http://localhost:8760 \
+    #     --db=mysql://civicrm:${MYSQL_PASSWORD}@db:3306/civicrm \
+    #     --lang=de_DE \
+    #     -m extras.adminUser=admin \
+    #     -m extras.adminPass=${CIVICRM_ADMIN_PASSWORD} \
+    #     -m extras.adminEmail=admin@example.com && \
+    #   chmod 400 /var/www/html/private/civicrm.settings.php && \
+    #   echo 'Patching CIVICRM_SITE_KEY in civicrm.settings.php ...' && \
+    #   sed -i \"s/define('CIVICRM_SITE_KEY'.*/define('CIVICRM_SITE_KEY', '${CIVICRM_SITE_KEY}');/\" /var/www/html/private/civicrm.settings.php && \
+    #   echo 'Patching CIVICRM_CRED_KEYS in civicrm.settings.php ...' && \
+    #   sed -i \"s/define('CIVICRM_CRED_KEYS'.*/define('CIVICRM_CRED_KEYS', '${CIVICRM_CRED_KEYS}');/\" /var/www/html/private/civicrm.settings.php && \
+    #   echo 'Patching CIVICRM_SIGN_KEYS in civicrm.settings.php ...' && \
+    #   sed -i \"s/define('CIVICRM_SIGN_KEYS'.*/define('CIVICRM_SIGN_KEYS', '${CIVICRM_SIGN_KEYS}');/\" /var/www/html/private/civicrm.settings.php && \
+    #   echo 'Installation completed, configuring additional settings...' && \
+    #   cv api4 Setting.set +v debug_enabled=0 && \
+    #   cv api4 Setting.set +v backtrace=0 && \
+    #   echo 'CiviCRM installation completed successfully!'"]
+    # restart: "no"
+    # networks:
+    #   - install-db
+    # cap_drop:
+    #   - ALL
+    # security_opt:
+    #   - no-new-privileges:true
+    # tmpfs:
+    #   - /tmp
+
   civicrm-app:
-    build: .
-    user: www-data:www-data
-    ports:
-      - 8760:8080 # CiviCRM will be available on port 8760.
+    image: civicrm:${CIVICRM_VERSION}-amd64
+    user: fpm
+    command: fpm
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
       civicrm-install:
         condition: service_completed_successfully
-    read_only: true
+    # read_only: true
     volumes:
-      - civicrm_private:/var/www/html/private:rw
-      - civicrm_public:/var/www/html/public:rw
-      - civicrm_ext:/var/www/html/ext:ro
-      - apache2_run:/var/run/apache2:rw
+      # - civicrm_private:/var/www/html/private:rw
+      # - civicrm_public:/var/www/html/public:rw
+      # - civicrm_ext:/var/www/html/ext:ro
+      - civicrm:/var/www/html:rw
+      - php_fpm_sock:/run/php:rw
     environment:
       CIVICRM_DB_HOST: db
       CIVICRM_DB_PORT: 3306
@@ -23,13 +110,11 @@ services:
       CIVICRM_DB_USER: civicrm
       CIVICRM_DB_PASSWORD: ${MYSQL_PASSWORD}
       CIVICRM_UF_BASEURL: http://localhost:8760
-      APACHE_RUN_USER: www-data
-      APACHE_PORT: 8080
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/civicrm/home || [ $? -eq 22 ]"]
+      test: ["CMD", "php", "/tmp/php-fpm-healthcheck.php"]
       interval: 5s
       timeout: 4s
-      start_period: 30s
+      start_period: 10s
       retries: 3
     networks:
       - app-db
@@ -40,81 +125,68 @@ services:
     tmpfs:
       - /tmp
 
-  civicrm-cron:
-    build: .
-    user: www-data:www-data
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-      civicrm-install:
-        condition: service_completed_successfully
-    read_only: true
-    volumes:
-      - civicrm_private:/var/www/html/private:rw
-      - civicrm_public:/var/www/html/public:rw
-      - civicrm_ext:/var/www/html/ext:ro
-    environment:
-      CIVICRM_DB_HOST: db
-      CIVICRM_DB_PORT: 3306
-      CIVICRM_DB_NAME: civicrm
-      CIVICRM_DB_USER: civicrm
-      CIVICRM_DB_PASSWORD: ${MYSQL_PASSWORD}
-      CIVICRM_UF_BASEURL: http://localhost:8760
-    entrypoint: ["/run-cron.sh"]
-    command: []
-    healthcheck:
-      test: ["CMD-SHELL", "pgrep supercronic > /dev/null || exit"]
-      interval: 5s
-      timeout: 4s
-      start_period: 4s
-      retries: 3
-    networks:
-      - cron-db
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-    tmpfs:
-      - /tmp
+  # civicrm-cron:
+  #   build: .
+  #   user: civicrm
+  #   restart: unless-stopped
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     civicrm-install:
+  #       condition: service_completed_successfully
+  #   read_only: true
+  #   volumes:
+  #     - civicrm_private:/var/www/html/private:rw
+  #     - civicrm_public:/var/www/html/public:rw
+  #     - civicrm_ext:/var/www/html/ext:ro
+  #   environment:
+  #     CIVICRM_DB_HOST: db
+  #     CIVICRM_DB_PORT: 3306
+  #     CIVICRM_DB_NAME: civicrm
+  #     CIVICRM_DB_USER: civicrm
+  #     CIVICRM_DB_PASSWORD: ${MYSQL_PASSWORD}
+  #     CIVICRM_UF_BASEURL: http://localhost:8760
+  #   entrypoint: ["/run-cron.sh"]
+  #   command: []
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pgrep supercronic > /dev/null || exit"]
+  #     interval: 5s
+  #     timeout: 4s
+  #     start_period: 4s
+  #     retries: 3
+  #   networks:
+  #     - cron-db
+  #   cap_drop:
+  #     - ALL
+  #   security_opt:
+  #     - no-new-privileges:true
+  #   tmpfs:
+  #     - /tmp
 
   civicrm-install:
-    build: .
-    user: www-data:www-data
+    image: civicrm:${CIVICRM_VERSION}-amd64
+    user: civicrm:www-data
     depends_on:
       db:
         condition: service_healthy
-    read_only: true
+    # read_only: true
     volumes:
-      - civicrm_private:/var/www/html/private:rw
-      - civicrm_public:/var/www/html/public:rw
-      - civicrm_ext:/var/www/html/ext:rw
+      - civicrm:/var/www/html:rw
     environment:
+      CIVICRM_DB_USER: civicrm
+      CIVICRM_DB_PASSWORD: ${MYSQL_PASSWORD}
+      CIVICRM_DB_HOST: db
+      CIVICRM_DB_NAME: civicrm
+      CIVICRM_UF_BASEURL: http://localhost:8760
+      CIVICRM_LANG: de_DE
+      CIVICRM_ADMIN_USER: admin
+      CIVICRM_ADMIN_EMAIL: admin@example.com
       CIVICRM_ADMIN_PASSWORD: ${CIVICRM_ADMIN_PASSWORD}
       CIVICRM_CRED_KEYS: ${CIVICRM_CRED_KEYS}
       CIVICRM_SIGN_KEYS: ${CIVICRM_SIGN_KEYS}
       CIVICRM_SITE_KEY: ${CIVICRM_SITE_KEY}
-    entrypoint: ["bash", "-c",
-      "echo 'Starting CiviCRM installation as www-data...' && \
-      cv core:install -K -n \
-        --url=http://localhost:8760 \
-        --db=mysql://civicrm:${MYSQL_PASSWORD}@db:3306/civicrm \
-        --lang=de_DE \
-        -m extras.adminUser=admin \
-        -m extras.adminPass=${CIVICRM_ADMIN_PASSWORD} \
-        -m extras.adminEmail=admin@example.com && \
-      chmod 400 /var/www/html/private/civicrm.settings.php && \
-      echo 'Patching CIVICRM_SITE_KEY in civicrm.settings.php ...' && \
-      sed -i \"s/define('CIVICRM_SITE_KEY'.*/define('CIVICRM_SITE_KEY', '${CIVICRM_SITE_KEY}');/\" /var/www/html/private/civicrm.settings.php && \
-      echo 'Patching CIVICRM_CRED_KEYS in civicrm.settings.php ...' && \
-      sed -i \"s/define('CIVICRM_CRED_KEYS'.*/define('CIVICRM_CRED_KEYS', '${CIVICRM_CRED_KEYS}');/\" /var/www/html/private/civicrm.settings.php && \
-      echo 'Patching CIVICRM_SIGN_KEYS in civicrm.settings.php ...' && \
-      sed -i \"s/define('CIVICRM_SIGN_KEYS'.*/define('CIVICRM_SIGN_KEYS', '${CIVICRM_SIGN_KEYS}');/\" /var/www/html/private/civicrm.settings.php && \
-      echo 'Installation completed, configuring additional settings...' && \
-      cv api4 Setting.set +v debug_enabled=0 && \
-      cv api4 Setting.set +v backtrace=0 && \
-      echo 'CiviCRM installation completed successfully!'"]
-    restart: "no"
+    command: init
+    restart: no
     networks:
       - install-db
     cap_drop:
@@ -138,7 +210,7 @@ services:
     image: mariadb:12.0.2
     restart: unless-stopped
     user: mysql:mysql
-    read_only: true
+    # read_only: true
     volumes:
       - db:/var/lib/mysql:rw
       - mysqld_run:/run/mysqld:rw
@@ -164,13 +236,27 @@ services:
     tmpfs:
       - /tmp
 
+  nginx:
+    image: nginxinc/nginx-unprivileged:stable
+    ports:
+      - 8760:8080
+    volumes:
+      - civicrm:/var/www/html:rw
+      - php_fpm_sock:/run/php:rw
+      - ./nginx.conf:/etc/nginx/conf.d/civicrm.conf:ro
+      - /dev/null:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      civicrm-app:
+        condition: service_healthy
+    networks:
+      - app-db
+
 volumes:
   db:
   mysqld_run:
+  civicrm:
+  php_fpm_sock:
   apache2_run:
-  civicrm_private:
-  civicrm_public:
-  civicrm_ext:
 
 networks:
   app-db:

@@ -1,3 +1,5 @@
 {
-    "sops-edit.tempFilePreExtension": "decrypted"
+    "sops-edit.tempFilePreExtension": "decrypted",
+    "git.ignoreLimitWarning": true,
+    "makefile.configureOnOpen": false
 }

@@ -5,6 +5,7 @@
     "formulahendry.docker-explorer",
     "davidanson.vscode-markdownlint",
     "shipitsmarter.sops-edit",
+    "ms-vscode.makefile-tools",
     "ms-vscode-remote.remote-containers"
   ],
 }
