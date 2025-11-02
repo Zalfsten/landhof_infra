@@ -1,0 +1,75 @@
+# Note: we assume that we always want to operate civicrm with php-fpm,
+# so we depend on it directly here and overwrite the config accordingly.
+# The cleaner solution would be a distinct package for the php-fpm config.
+
+vars:
+  civicrm_version: 6.7.2
+  civicrm_cv_version: 0.3.66
+  civicrm_php_version: 8.3
+
+package:
+  name: civicrm
+  version: ${{vars.civicrm_version}}
+  epoch: 0
+  description: "CiviCRM Standalone"
+  copyright:
+    - license: AGPL-3.0
+
+  dependencies:
+    runtime:
+      - php-${{vars.civicrm_php_version}}
+      - php-${{vars.civicrm_php_version}}-fpm
+      - php-${{vars.civicrm_php_version}}-bcmath
+      - php-${{vars.civicrm_php_version}}-gd
+      - php-${{vars.civicrm_php_version}}-intl
+      - php-${{vars.civicrm_php_version}}-mysqli
+      - php-${{vars.civicrm_php_version}}-zip
+      - php-${{vars.civicrm_php_version}}-imagick
+      - php-${{vars.civicrm_php_version}}-phar
+      - php-${{vars.civicrm_php_version}}-iconv
+      - php-${{vars.civicrm_php_version}}-openssl
+      - php-${{vars.civicrm_php_version}}-mysqlnd
+      - php-${{vars.civicrm_php_version}}-curl
+      - php-${{vars.civicrm_php_version}}-xml
+      - php-${{vars.civicrm_php_version}}-mbstring
+      - php-${{vars.civicrm_php_version}}-simplexml
+      - php-${{vars.civicrm_php_version}}-fileinfo
+      - php-${{vars.civicrm_php_version}}-dom
+      - rsync
+
+environment:
+  contents:
+    packages:
+      - busybox
+      - curl
+      - ca-certificates-bundle
+
+pipeline:
+  - runs: |
+      mkdir -p ${{targets.destdir}}/usr/share/civicrm
+      curl -fsSL https://download.civicrm.org/civicrm-${{vars.civicrm_version}}-standalone.tar.gz -o /tmp/civicrm.tar.gz
+      tar -xf /tmp/civicrm.tar.gz -C ${{targets.destdir}}/usr/share/civicrm --strip-components=1
+      rm /tmp/civicrm.tar.gz
+
+      echo "AGPL-3.0" > ${{targets.destdir}}/usr/share/civicrm/LICENSE
+
+      # Download cv (https://github.com/civicrm/cv)
+      mkdir -p ${{targets.destdir}}/usr/local/bin
+      curl -fLsS https://github.com/civicrm/cv/releases/download/v${{vars.civicrm_cv_version}}/cv-${{vars.civicrm_cv_version}}.phar -o ${{targets.destdir}}/usr/local/bin/cv
+      chmod +x ${{targets.destdir}}/usr/local/bin/cv
+
+      # PHP-FPM config
+      mkdir -p ${{targets.destdir}}/etc/php/php-fpm.d
+      cp civicrm-php-fpm.conf ${{targets.destdir}}/etc/php/php-fpm.d/zzz-civicrm.conf
+
+      # PHP INI config for CiviCRM
+      mkdir -p ${{targets.destdir}}/etc/php/conf.d
+      cp civicrm-php.ini ${{targets.destdir}}/etc/php/conf.d/99-civicrm.ini
+
+      # Kopiere entrypoint.sh ins Image
+      mkdir -p ${{targets.destdir}}/usr/local/bin
+      cp entrypoint.sh ${{targets.destdir}}/entrypoint.sh
+      chmod +x ${{targets.destdir}}/entrypoint.sh
+
+      mkdir -p -m 700 ${{targets.destdir}}/run/php
+      mkdir -p -m 750 ${{targets.destdir}}/var/www/html

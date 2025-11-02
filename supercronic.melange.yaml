@@ -1,0 +1,29 @@
+vars:
+  supercronic_version: 0.2.38
+
+package:
+  name: supercronic
+  version: ${{vars.supercronic_version}}
+  epoch: 0
+  description: "Supercronic - Cron for containers"
+  copyright:
+    - license: MIT
+
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+
+environment:
+  contents:
+    packages:
+      - busybox
+      - curl
+      - ca-certificates-bundle
+
+pipeline:
+  - runs: |
+      mkdir -p ${{targets.destdir}}/usr/local/bin
+      curl -fsSL https://github.com/aptible/supercronic/releases/download/v${{vars.supercronic_version}}/supercronic-linux-amd64 -o ${{targets.destdir}}/usr/local/bin/supercronic
+
+      mkdir -p ${{targets.destdir}}/usr/share/licenses/supercronic
+      curl -fsSL https://raw.githubusercontent.com/aptible/supercronic/refs/tags/v${{vars.supercronic_version}}/LICENSE.md -o ${{targets.destdir}}/usr/share/licenses/supercronic/LICENSE
