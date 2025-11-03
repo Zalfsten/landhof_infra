@@ -16,27 +16,50 @@ accounts:
   run-as: fpm
   users:
     - username: civicrm
-      uid: ${CIVICRM_USER_ID}
-      gid: ${CIVICRM_GROUP_ID}
+      uid: 61616
+      gid: 61616
       shell: /sbin/nologin
     - username: fpm
-      uid: ${CIVICRM_FPM_USER_ID}
-      gid: ${CIVICRM_GROUP_ID}
+      uid: 61617
+      gid: 61616
+      shell: /sbin/nologin
+    - username: supercronic
+      uid: 61618
+      gid: 61616
+      shell: /sbin/nologin
+    - username: nginx
+      uid: 101
+      gid: 61616
       shell: /sbin/nologin
   groups:
-    - groupname: ${CIVICRM_GROUP_NAME}
-      gid: ${CIVICRM_GROUP_ID}
+    - groupname: civicrm
+      gid: 61616
 
 paths:
   - path: /var/www/html
     type: permissions
-    uid: ${CIVICRM_USER_ID}
-    gid: ${CIVICRM_GROUP_ID}
+    uid: 61616
+    gid: 61616
+    permissions: 0o0750
+  - path: /var/www/html/public
+    type: permissions
+    uid: 61616
+    gid: 61616
+    permissions: 0o0770
+  - path: /var/www/html/private
+    type: permissions
+    uid: 61616
+    gid: 61616
+    permissions: 0o0770
+  - path: /var/www/html/ext
+    type: permissions
+    uid: 61616
+    gid: 61616
     permissions: 0o0750
   - path: /run/php
     type: permissions
-    uid: ${CIVICRM_USER_ID}
-    gid: ${CIVICRM_GROUP_ID}
+    uid: 61616
+    gid: 61616
     permissions: 0o0770
 
 work-dir: /var/www/html

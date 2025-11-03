@@ -1,0 +1,1125 @@
+[
+    {
+        "name": "hideCountryMailingLabels",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "installed",
+        "value": 1,
+        "domain_id": 1
+    },
+    {
+        "name": "enable_components",
+        "value": [
+            "CiviEvent",
+            "CiviContribute",
+            "CiviMember",
+            "CiviMail",
+            "CiviReport"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "domain",
+        "value": 1,
+        "domain_id": 1
+    },
+    {
+        "name": "core_maintenance_mode",
+        "value": "inherit",
+        "domain_id": 1
+    },
+    {
+        "name": "contact_view_options",
+        "value": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "13"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "contact_edit_options",
+        "value": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "11",
+            "12",
+            "14",
+            "15",
+            "16",
+            "17"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "advanced_search_options",
+        "value": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "user_dashboard_options",
+        "value": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "7",
+            "8"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "address_options",
+        "value": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "8",
+            "9",
+            "10"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "address_format",
+        "value": "{contact.address_name}\n{contact.street_address}\n{contact.supplemental_address_1}\n{contact.supplemental_address_2}\n{contact.city}{, }{contact.state_province}{ }{contact.postal_code}\n{contact.country}",
+        "domain_id": 1
+    },
+    {
+        "name": "mailing_format",
+        "value": "{contact.addressee}\n{contact.street_address}\n{contact.supplemental_address_1}\n{contact.supplemental_address_2}\n{contact.city}{, }{contact.state_province}{ }{contact.postal_code}\n{contact.country}",
+        "domain_id": 1
+    },
+    {
+        "name": "display_name_format",
+        "value": "{contact.individual_prefix}{ }{contact.first_name}{ }{contact.last_name}{ }{contact.individual_suffix}",
+        "domain_id": 1
+    },
+    {
+        "name": "sort_name_format",
+        "value": "{contact.last_name}{, }{contact.first_name}",
+        "domain_id": 1
+    },
+    {
+        "name": "remote_profile_submissions",
+        "value": false,
+        "domain_id": 1
+    },
+    {
+        "name": "allow_alert_autodismissal",
+        "value": true,
+        "domain_id": 1
+    },
+    {
+        "name": "editor_id",
+        "value": "CKEditor",
+        "domain_id": 1
+    },
+    {
+        "name": "contact_ajax_check_similar",
+        "value": "1",
+        "domain_id": 1
+    },
+    {
+        "name": "ajaxPopupsEnabled",
+        "value": 1,
+        "domain_id": 1
+    },
+    {
+        "name": "enableBackgroundQueue",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "defaultExternUrl",
+        "value": "router",
+        "domain_id": 1
+    },
+    {
+        "name": "activity_assignee_notification",
+        "value": "1",
+        "domain_id": 1
+    },
+    {
+        "name": "activity_assignee_notification_ics",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "contact_autocomplete_options",
+        "value": [
+            "1",
+            "2"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "contact_reference_options",
+        "value": [
+            "1",
+            "2"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "contact_smart_group_display",
+        "value": "1",
+        "domain_id": 1
+    },
+    {
+        "name": "smart_group_cache_refresh_mode",
+        "value": "opportunistic",
+        "domain_id": 1
+    },
+    {
+        "name": "acl_cache_refresh_mode",
+        "value": "opportunistic",
+        "domain_id": 1
+    },
+    {
+        "name": "max_attachments",
+        "value": 3,
+        "domain_id": 1
+    },
+    {
+        "name": "max_attachments_backend",
+        "value": 100,
+        "domain_id": 1
+    },
+    {
+        "name": "maxFileSize",
+        "value": 3,
+        "domain_id": 1
+    },
+    {
+        "name": "contact_undelete",
+        "value": 1,
+        "domain_id": 1
+    },
+    {
+        "name": "allowPermDeleteFinancial",
+        "value": false,
+        "domain_id": 1
+    },
+    {
+        "name": "securityAlert",
+        "value": 1,
+        "domain_id": 1
+    },
+    {
+        "name": "doNotAttachPDFReceipt",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "recordGeneratedLetters",
+        "value": "multiple",
+        "domain_id": 1
+    },
+    {
+        "name": "dompdf_enable_remote",
+        "value": true,
+        "domain_id": 1
+    },
+    {
+        "name": "checksum_timeout",
+        "value": 7,
+        "domain_id": 1
+    },
+    {
+        "name": "blogUrl",
+        "value": "*default*",
+        "domain_id": 1
+    },
+    {
+        "name": "communityMessagesUrl",
+        "value": "*default*",
+        "domain_id": 1
+    },
+    {
+        "name": "gettingStartedUrl",
+        "value": "*default*",
+        "domain_id": 1
+    },
+    {
+        "name": "verifySSL",
+        "value": 1,
+        "domain_id": 1
+    },
+    {
+        "name": "enableSSL",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "wpBasePage",
+        "value": "",
+        "domain_id": 1
+    },
+    {
+        "name": "secondDegRelPermissions",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "disable_core_css",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "empoweredBy",
+        "value": 1,
+        "domain_id": 1
+    },
+    {
+        "name": "logging_no_trigger_permission",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "logging",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "logging_all_tables_uniquid",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "userFrameworkUsersTableName",
+        "value": "users",
+        "domain_id": 1
+    },
+    {
+        "name": "wpLoadPhp",
+        "value": "",
+        "domain_id": 1
+    },
+    {
+        "name": "secure_cache_timeout_minutes",
+        "value": 20,
+        "domain_id": 1
+    },
+    {
+        "name": "site_id",
+        "value": "",
+        "domain_id": 1
+    },
+    {
+        "name": "recentItemsMaxCount",
+        "value": 20,
+        "domain_id": 1
+    },
+    {
+        "name": "recentItemsProviders",
+        "value": "",
+        "domain_id": 1
+    },
+    {
+        "name": "import_batch_size",
+        "value": 50,
+        "domain_id": 1
+    },
+    {
+        "name": "disable_sql_memory_engine",
+        "value": false,
+        "domain_id": 1
+    },
+    {
+        "name": "dedupe_default_limit",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "syncCMSEmail",
+        "value": 1,
+        "domain_id": 1
+    },
+    {
+        "name": "preserve_activity_tab_filter",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "do_not_notify_assignees_for",
+        "value": [],
+        "domain_id": 1
+    },
+    {
+        "name": "requestableMimeTypes",
+        "value": "image/jpeg,image/pjpeg,image/gif,image/x-png,image/png,image/jpg,text/html,application/pdf",
+        "domain_id": 1
+    },
+    {
+        "name": "theme_frontend",
+        "value": "minetta",
+        "domain_id": 1
+    },
+    {
+        "name": "theme_backend",
+        "value": "minetta",
+        "domain_id": 1
+    },
+    {
+        "name": "http_timeout",
+        "value": 5,
+        "domain_id": 1
+    },
+    {
+        "name": "queue_paused",
+        "value": false,
+        "domain_id": 1
+    },
+    {
+        "name": "civicrm_db_name",
+        "value": "civicrm",
+        "domain_id": 1
+    },
+    {
+        "name": "civicrm_db_user",
+        "value": "civicrm",
+        "domain_id": 1
+    },
+    {
+        "name": "civicrm_db_host",
+        "value": "db",
+        "domain_id": 1
+    },
+    {
+        "name": "civicrm_db_port",
+        "value": 3306,
+        "domain_id": 1
+    },
+    {
+        "name": "assetCache",
+        "value": "auto",
+        "domain_id": 1
+    },
+    {
+        "name": "userFrameworkLogging",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "debug_enabled",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "backtrace",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "environment",
+        "value": "Production",
+        "domain_id": 1
+    },
+    {
+        "name": "esm_loader",
+        "value": "auto",
+        "domain_id": 1
+    },
+    {
+        "name": "uploadDir",
+        "value": "[cms.root]/private/tmp",
+        "domain_id": 1
+    },
+    {
+        "name": "imageUploadDir",
+        "value": "[cms.root]/public/media",
+        "domain_id": 1
+    },
+    {
+        "name": "customFileUploadDir",
+        "value": "[cms.root]/private/attachment",
+        "domain_id": 1
+    },
+    {
+        "name": "extensionsDir",
+        "value": "[cms.root]/ext",
+        "domain_id": 1
+    },
+    {
+        "name": "ext_repo_url",
+        "value": "https://civicrm.org/extdir/ver={ver}",
+        "domain_id": 1
+    },
+    {
+        "name": "ext_max_depth",
+        "value": 3,
+        "domain_id": 1
+    },
+    {
+        "name": "monetaryThousandSeparator",
+        "value": ".",
+        "domain_id": 1
+    },
+    {
+        "name": "monetaryDecimalPoint",
+        "value": ",",
+        "domain_id": 1
+    },
+    {
+        "name": "moneyformat",
+        "value": "%c%a",
+        "domain_id": 1
+    },
+    {
+        "name": "moneyvalueformat",
+        "value": "%!i",
+        "domain_id": 1
+    },
+    {
+        "name": "defaultCurrency",
+        "value": "EUR",
+        "domain_id": 1
+    },
+    {
+        "name": "countryLimit",
+        "value": [],
+        "domain_id": 1
+    },
+    {
+        "name": "provinceLimit",
+        "value": [],
+        "domain_id": 1
+    },
+    {
+        "name": "inheritLocale",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "dateformatDatetime",
+        "value": "%Y-%m-%d %H:%M",
+        "domain_id": 1
+    },
+    {
+        "name": "dateformatFull",
+        "value": "%Y-%m-%d",
+        "domain_id": 1
+    },
+    {
+        "name": "dateformatPartial",
+        "value": "%Y-%m",
+        "domain_id": 1
+    },
+    {
+        "name": "dateformatTime",
+        "value": "%H:%M",
+        "domain_id": 1
+    },
+    {
+        "name": "dateformatYear",
+        "value": "%Y",
+        "domain_id": 1
+    },
+    {
+        "name": "dateformatFinancialBatch",
+        "value": "%Y-%m-%d",
+        "domain_id": 1
+    },
+    {
+        "name": "dateformatshortdate",
+        "value": "%m/%d/%Y",
+        "domain_id": 1
+    },
+    {
+        "name": "dateInputFormat",
+        "value": "yy-mm-dd",
+        "domain_id": 1
+    },
+    {
+        "name": "fieldSeparator",
+        "value": ",",
+        "domain_id": 1
+    },
+    {
+        "name": "fiscalYearStart",
+        "value": {
+            "M": 1,
+            "d": 1
+        },
+        "domain_id": 1
+    },
+    {
+        "name": "partial_locales",
+        "value": "1",
+        "domain_id": 1
+    },
+    {
+        "name": "lcMessages",
+        "value": "de_DE",
+        "domain_id": 1
+    },
+    {
+        "name": "legacyEncoding",
+        "value": "Windows-1252",
+        "domain_id": 1
+    },
+    {
+        "name": "timeInputFormat",
+        "value": "1",
+        "domain_id": 1
+    },
+    {
+        "name": "weekBegins",
+        "value": "1",
+        "domain_id": 1
+    },
+    {
+        "name": "contact_default_language",
+        "value": "*default*",
+        "domain_id": 1
+    },
+    {
+        "name": "pinnedContactCountries",
+        "value": [],
+        "domain_id": 1
+    },
+    {
+        "name": "mailing_backend",
+        "value": {
+            "outBound_option": "3"
+        },
+        "domain_id": 1
+    },
+    {
+        "name": "verpSeparator",
+        "value": ".",
+        "domain_id": 1
+    },
+    {
+        "name": "simple_mail_limit",
+        "value": 50,
+        "domain_id": 1
+    },
+    {
+        "name": "allow_mail_from_logged_in_contact",
+        "value": 1,
+        "domain_id": 1
+    },
+    {
+        "name": "scheduled_reminder_smarty",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "smtp_450_is_permanent",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "multisite_is_enabled",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "domain_group_id",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "event_price_set_domain_id",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "uniq_email_per_site",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "menubar_position",
+        "value": "over-cms-menu",
+        "domain_id": 1
+    },
+    {
+        "name": "menubar_color",
+        "value": "#1b1b1b",
+        "domain_id": 1
+    },
+    {
+        "name": "search_autocomplete_count",
+        "value": 15,
+        "domain_id": 1
+    },
+    {
+        "name": "includeOrderByClause",
+        "value": 1,
+        "domain_id": 1
+    },
+    {
+        "name": "includeWildCardInName",
+        "value": 1,
+        "domain_id": 1
+    },
+    {
+        "name": "includeEmailInName",
+        "value": 1,
+        "domain_id": 1
+    },
+    {
+        "name": "includeNickNameInName",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "includeAlphabeticalPager",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "smartGroupCacheTimeout",
+        "value": 5,
+        "domain_id": 1
+    },
+    {
+        "name": "prevNextBackend",
+        "value": "default",
+        "domain_id": 1
+    },
+    {
+        "name": "searchPrimaryDetailsOnly",
+        "value": 1,
+        "domain_id": 1
+    },
+    {
+        "name": "quicksearch_options",
+        "value": [
+            "sort_name",
+            "id",
+            "external_identifier",
+            "first_name",
+            "last_name",
+            "email_primary.email",
+            "phone_primary.phone_numeric",
+            "address_primary.street_address",
+            "address_primary.city",
+            "address_primary.postal_code",
+            "job_title"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "default_pager_size",
+        "value": 50,
+        "domain_id": 1
+    },
+    {
+        "name": "userFrameworkResourceURL",
+        "value": "[civicrm.root]/",
+        "domain_id": 1
+    },
+    {
+        "name": "imageUploadURL",
+        "value": "[cms.root]/public/media",
+        "domain_id": 1
+    },
+    {
+        "name": "extensionsURL",
+        "value": "[cms.root]/ext",
+        "domain_id": 1
+    },
+    {
+        "name": "authx_guards",
+        "value": [
+            "site_key",
+            "perm"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "authx_auto_cred",
+        "value": [
+            "jwt"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "authx_auto_user",
+        "value": "optional",
+        "domain_id": 1
+    },
+    {
+        "name": "authx_header_cred",
+        "value": [
+            "jwt",
+            "api_key"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "authx_header_user",
+        "value": "optional",
+        "domain_id": 1
+    },
+    {
+        "name": "authx_login_cred",
+        "value": [
+            "jwt",
+            "pass"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "authx_login_user",
+        "value": "optional",
+        "domain_id": 1
+    },
+    {
+        "name": "authx_param_cred",
+        "value": [
+            "jwt",
+            "api_key"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "authx_param_user",
+        "value": "optional",
+        "domain_id": 1
+    },
+    {
+        "name": "authx_xheader_cred",
+        "value": [
+            "jwt",
+            "api_key"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "authx_xheader_user",
+        "value": "optional",
+        "domain_id": 1
+    },
+    {
+        "name": "authx_legacyrest_cred",
+        "value": [
+            "jwt",
+            "api_key"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "authx_legacyrest_user",
+        "value": "require",
+        "domain_id": 1
+    },
+    {
+        "name": "authx_pipe_cred",
+        "value": [
+            "jwt",
+            "api_key"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "authx_pipe_user",
+        "value": "optional",
+        "domain_id": 1
+    },
+    {
+        "name": "authx_script_cred",
+        "value": [
+            "jwt"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "authx_script_user",
+        "value": "optional",
+        "domain_id": 1
+    },
+    {
+        "name": "cvv_backoffice_required",
+        "value": "1",
+        "domain_id": 1
+    },
+    {
+        "name": "invoicing",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "invoice_prefix",
+        "value": "INV_",
+        "domain_id": 1
+    },
+    {
+        "name": "invoice_due_date",
+        "value": "10",
+        "domain_id": 1
+    },
+    {
+        "name": "invoice_due_date_period",
+        "value": "days",
+        "domain_id": 1
+    },
+    {
+        "name": "invoice_notes",
+        "value": "",
+        "domain_id": 1
+    },
+    {
+        "name": "tax_term",
+        "value": "Sales Tax",
+        "domain_id": 1
+    },
+    {
+        "name": "tax_display_settings",
+        "value": "Inclusive",
+        "domain_id": 1
+    },
+    {
+        "name": "deferred_revenue_enabled",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "always_post_to_accounts_receivable",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "update_contribution_on_membership_type_change",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "show_events",
+        "value": 10,
+        "domain_id": 1
+    },
+    {
+        "name": "event_show_payment_on_confirm",
+        "value": [],
+        "domain_id": 1
+    },
+    {
+        "name": "profile_double_optin",
+        "value": "1",
+        "domain_id": 1
+    },
+    {
+        "name": "track_civimail_replies",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "civimail_workflow",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "civimail_server_wide_lock",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "civimail_unsubscribe_methods",
+        "value": [
+            "mailto",
+            "http",
+            "oneclick"
+        ],
+        "domain_id": 1
+    },
+    {
+        "name": "replyTo",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "profile_add_to_group_double_optin",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "disable_mandatory_tokens_check",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "dedupe_email_default",
+        "value": 1,
+        "domain_id": 1
+    },
+    {
+        "name": "hash_mailing_url",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "civimail_multiple_bulk_emails",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "include_message_id",
+        "value": false,
+        "domain_id": 1
+    },
+    {
+        "name": "mailerBatchLimit",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "mailerJobSize",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "mailerJobsMax",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "mailThrottleTime",
+        "value": 0,
+        "domain_id": 1
+    },
+    {
+        "name": "write_activity_record",
+        "value": "1",
+        "domain_id": 1
+    },
+    {
+        "name": "auto_recipient_rebuild",
+        "value": "1",
+        "domain_id": 1
+    },
+    {
+        "name": "url_tracking_default",
+        "value": "1",
+        "domain_id": 1
+    },
+    {
+        "name": "open_tracking_default",
+        "value": "1",
+        "domain_id": 1
+    },
+    {
+        "name": "civimail_sync_interval",
+        "value": 10,
+        "domain_id": 1
+    },
+    {
+        "name": "default_oneclick_unsubscribe_mode",
+        "value": "unsubscribe",
+        "domain_id": 1
+    },
+    {
+        "name": "forceRecaptcha",
+        "value": "0",
+        "domain_id": 1
+    },
+    {
+        "name": "riverlea_dark_mode_backend",
+        "value": "inherit",
+        "domain_id": 1
+    },
+    {
+        "name": "riverlea_dark_mode_frontend",
+        "value": "inherit",
+        "domain_id": 1
+    },
+    {
+        "name": "credit_notes_prefix",
+        "value": "CN_",
+        "domain_id": 1
+    },
+    {
+        "name": "standaloneusers_session_max_lifetime",
+        "value": 34560,
+        "domain_id": 1
+    },
+    {
+        "name": "standalone_mfa_enabled",
+        "value": "",
+        "domain_id": 1
+    },
+    {
+        "name": "resCacheCode",
+        "value": "rlly0",
+        "domain_id": 1
+    },
+    {
+        "name": "defaultContactCountry",
+        "value": "1082",
+        "domain_id": 1
+    },
+    {
+        "name": "civicrm_db_password",
+        "value": "your_password_here",
+        "domain_id": 1
+    },
+    {
+        "name": "userFrameworkBaseURL",
+        "value": "http://localhost:8760",
+        "domain_id": 1
+    },
+    {
+        "name": "contribution_invoice_settings",
+        "value": {
+            "credit_notes_prefix": "CN_",
+            "invoice_prefix": "INV_",
+            "due_date": "10",
+            "due_date_period": "days",
+            "notes": "",
+            "is_email_pdf": null,
+            "tax_term": "Sales Tax",
+            "tax_display_settings": "Inclusive",
+            "invoicing": 0
+        },
+        "domain_id": 1
+    },
+    {
+        "name": "civicrm_db_dsn",
+        "value": "mysql://civicrm:your_password_here@db:3306/civicrm?new_link=true",
+        "domain_id": 1
+    }
+]

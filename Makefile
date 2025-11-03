@@ -13,7 +13,7 @@ KEY_PRIV := $(BUILD_DIR)/melange.rsa
 KEY_PUB := $(BUILD_DIR)/melange.rsa.pub
 CIVICRM_APK := $(PKG_DIR)/civicrm-$(CIVICRM_VERSION)-r0.apk
 SUPERCRONIC_APK := $(PKG_DIR)/supercronic-$(SUPERCRONIC_VERSION)-r0.apk
-APKO_FILE := $(BUILD_DIR)/civicrm.apko.yaml
+APKO_FILE := civicrm.apko.yaml
 APKO_TAR := $(BUILD_DIR)/civicrm.tar
 # APKO_LOCK := civicrm.apko.lock.json
 
@@ -61,9 +61,6 @@ $(SUPERCRONIC_APK): supercronic.melange.yaml $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB
 	    --keyring-append https://packages.wolfi.dev/os/wolfi-signing.rsa.pub \
 	    ../supercronic.melange.yaml
 	docker run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/${BUILD_DIR}/packages
-
-$(APKO_FILE): .env civicrm.apko.tpl
-	envsubst < civicrm.apko.tpl > $(APKO_FILE)
 
 # Note: A package lock file that is checked into git is a good thing for reproducible builds.
 # The issue is: it depends on the apko file, which is a build artifact itself.

@@ -71,5 +71,5 @@ pipeline:
       cp entrypoint.sh ${{targets.destdir}}/entrypoint.sh
       chmod +x ${{targets.destdir}}/entrypoint.sh
 
-      mkdir -p -m 700 ${{targets.destdir}}/run/php
-      mkdir -p -m 750 ${{targets.destdir}}/var/www/html
+      mkdir -p ${{targets.destdir}}/var/www/html/public ${{targets.destdir}}/var/www/html/private ${{targets.destdir}}/var/www/html/ext
+      mkdir -p ${{targets.destdir}}/run/php

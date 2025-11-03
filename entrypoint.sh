@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
+umask 0007
 
 log() {
     echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] $*" >&2;
@@ -70,7 +71,6 @@ if [ "$MODE" = "init" ]; then
     -m extras.adminPass="${admin_password}" \
     -m extras.adminEmail="${admin_email}"
 
-  chmod -R 770 /var/www/html/private /var/www/html/public /var/www/html/ext
   chmod 440 /var/www/html/private/civicrm.settings.php
 
   if [ -z "$site_key" ]; then
@@ -89,6 +89,11 @@ if [ "$MODE" = "init" ]; then
   log "INFO: Installation completed, configuring additional settings..."
   cv api4 Setting.set +v debug_enabled=0
   cv api4 Setting.set +v backtrace=0
+  cv api4 Setting.set +v enableSSL=1
+  cv api4 Setting.set +v verifySSL=1
+  cv api4 Setting.set +v communityMessagesUrl=''
+  cv api4 Setting.set +v ext_repo_url=''
+
   echo 'CiviCRM installation completed successfully!'
 elif [ "$MODE" = "fpm" ]; then
   log "INFO: Generating PHP-FPM health check script..."
@@ -121,7 +126,7 @@ cat > /tmp/php-fpm-healthcheck.php << HEALTHCHECK_EOF
 
 \$fcgi = @stream_socket_client(\$socketType . "://" . \$listen, \$errno, \$errstr, 1);
 if (!\$fcgi) {
-    echo "ERROR: Cannot connect to FPM socket: \$errstr (\$errno)\n";
+    fwrite(STDERR, "ERROR: Cannot connect to PHP-FPM socket: \$errstr (\$errno)\n");
     exit(1);
 }
 
@@ -166,17 +171,16 @@ fclose(\$fcgi);
 
 // Check for FastCGI response
 if (\$response === false || strlen(\$response) === 0) {
-    echo "PHP-FPM did not respond\n";
+    fwrite(STDERR, "PHP-FPM did not respond\n");
     exit(1);
 }
 
 // Check for correct response
 if (strpos(\$response, \$pong) !== false) {
-    echo "OK (FPM ping responded with '\$pong')\n";
     exit(0);
 }
 
-echo "Invalid FastCGI response\n";
+fwrite(STDERR, "Invalid PHP-FPM response\n");
 exit(1);
 HEALTHCHECK_EOF
 
@@ -194,7 +198,7 @@ CRONTAB_EOF
   
   log "INFO: Starting supercronic..."
   exec /usr/local/bin/supercronic /tmp/crontab
-elif [ "$MODE" = "custom" ]; then
+else
   log "INFO: Executing custom command: $MODE $@"
   exec "$MODE" "$@"
 fi
