@@ -24,6 +24,7 @@ pipeline:
   - runs: |
       mkdir -p ${{targets.destdir}}/usr/local/bin
       curl -fsSL https://github.com/aptible/supercronic/releases/download/v${{vars.supercronic_version}}/supercronic-linux-amd64 -o ${{targets.destdir}}/usr/local/bin/supercronic
+      chmod +x ${{targets.destdir}}/usr/local/bin/supercronic
 
       mkdir -p ${{targets.destdir}}/usr/share/licenses/supercronic
       curl -fsSL https://raw.githubusercontent.com/aptible/supercronic/refs/tags/v${{vars.supercronic_version}}/LICENSE.md -o ${{targets.destdir}}/usr/share/licenses/supercronic/LICENSE

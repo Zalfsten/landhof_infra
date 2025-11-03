@@ -87,9 +87,9 @@ if [ "$MODE" = "init" ]; then
   fi
 
   log "INFO: Installation completed, configuring additional settings..."
-  # cv api4 Setting.set +v debug_enabled=0
-  # cv api4 Setting.set +v backtrace=0
-  # echo 'CiviCRM installation completed successfully!'
+  cv api4 Setting.set +v debug_enabled=0
+  cv api4 Setting.set +v backtrace=0
+  echo 'CiviCRM installation completed successfully!'
 elif [ "$MODE" = "fpm" ]; then
   log "INFO: Generating PHP-FPM health check script..."
   
@@ -111,43 +111,6 @@ elif [ "$MODE" = "fpm" ]; then
   else
     socket_type="tcp"
   fi
-  
-  # Generate health check script in /tmp with variable substitution
-#   cat > /tmp/php-fpm-healthcheck.php << HEALTHCHECK_EOF
-# #!/usr/bin/env php
-# <?php
-# \$socketType = '$socket_type';
-# \$socketValue = '$socket_value';
-# \$pingPath = '$ping_path';
-
-# \$fp = @stream_socket_client(\$socketType . "://" . \$socketValue, \$errno, \$errstr, 5);
-
-# if (!\$fp) {
-#     fwrite(STDERR, "ERROR: Cannot connect to FPM: \$errstr (\$errno)\\n");
-#     exit(1);
-# }
-
-# \$request = 
-#     "\\x01\\x01\\x00\\x01\\x00\\x08\\x00\\x00" .
-#     "\\x00\\x01\\x00\\x00\\x00\\x00\\x00\\x00" .
-#     "\\x01\\x04\\x00\\x01" . pack("n", strlen("SCRIPT_NAME" . \$pingPath) + 32) . "\\x00" .
-#     "\\x0c" . pack("C", strlen("SCRIPT_NAME")) . "SCRIPT_NAME" . 
-#     pack("C", strlen(\$pingPath)) . \$pingPath .
-#     "\\x0f" . pack("C", strlen("SCRIPT_FILENAME")) . "SCRIPT_FILENAME" . 
-#     pack("C", strlen(\$pingPath)) . \$pingPath .
-#     "\\x01\\x04\\x00\\x01\\x00\\x00\\x00\\x00";
-
-# fwrite(\$fp, \$request);
-# \$response = stream_get_contents(\$fp);
-# fclose(\$fp);
-
-# if (strpos(\$response, 'pong') !== false) {
-#     exit(0);
-# } else {
-#     fwrite(STDERR, "ERROR: FPM ping failed\\n");
-#     exit(1);
-# }
-# HEALTHCHECK_EOF
 
 cat > /tmp/php-fpm-healthcheck.php << HEALTHCHECK_EOF
 <?php
@@ -222,9 +185,16 @@ HEALTHCHECK_EOF
   log "INFO: Starting php-fpm..."
   exec /usr/sbin/php-fpm "$@"
 elif [ "$MODE" = "supercronic" ]; then
+  log "INFO: Generating supercronic crontab..."
+  
+  # Create crontab for supercronic
+  cat > /tmp/crontab << 'CRONTAB_EOF'
+*/5 * * * * cv core:cron
+CRONTAB_EOF
+  
   log "INFO: Starting supercronic..."
-  exec /usr/local/bin/supercronic "$@"
-else
+  exec /usr/local/bin/supercronic /tmp/crontab
+elif [ "$MODE" = "custom" ]; then
   log "INFO: Executing custom command: $MODE $@"
   exec "$MODE" "$@"
 fi
