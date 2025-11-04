@@ -16,13 +16,6 @@ services:
       - civicrm-private:/var/www/html/private:rw
       - civicrm-ext:/var/www/html/ext:rw
       - php_fpm_sock:/run/php:rw
-    environment:
-      CIVICRM_DB_HOST: db
-      CIVICRM_DB_PORT: 3306
-      CIVICRM_DB_NAME: civicrm
-      CIVICRM_DB_USER: civicrm
-      CIVICRM_DB_PASSWORD: ${MYSQL_PASSWORD}
-      CIVICRM_UF_BASEURL: http://localhost:8760
     healthcheck:
       test: ["CMD", "php", "/tmp/php-fpm-healthcheck.php"]
       interval: 5s
@@ -53,14 +46,7 @@ services:
       - civicrm:/var/www/html:ro
       - civicrm-public:/var/www/html/public:rw
       - civicrm-private:/var/www/html/private:rw
-      - civicrm-ext:/var/www/html/ext:ro
-    environment:
-      CIVICRM_DB_HOST: db
-      CIVICRM_DB_PORT: 3306
-      CIVICRM_DB_NAME: civicrm
-      CIVICRM_DB_USER: civicrm
-      CIVICRM_DB_PASSWORD: ${MYSQL_PASSWORD}
-      CIVICRM_UF_BASEURL: http://localhost:8760
+      - civicrm-ext:/var/www/html/ext:rw
     command: supercronic
     healthcheck:
       test: ["CMD-SHELL", "pgrep supercronic > /dev/null || exit"]
@@ -156,7 +142,7 @@ services:
       - civicrm:/var/www/html:rw
       - civicrm-public:/var/www/html/public:rw
       - civicrm-private:/var/www/html/private:rw
-      - civicrm-ext:/var/www/html/ext:ro
+      - civicrm-ext:/var/www/html/ext:rw
       - php_fpm_sock:/run/php:rw
       - ./nginx.conf:/etc/nginx/conf.d/civicrm.conf:ro
       - /dev/null:/etc/nginx/conf.d/default.conf:ro
@@ -164,7 +150,7 @@ services:
       civicrm-app:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8080/"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8081/nginx_status"]
       interval: 10s
       timeout: 5s
       start_period: 10s

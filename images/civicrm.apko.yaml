@@ -6,6 +6,9 @@ contents:
     - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
   packages:
     - busybox
+    - wget       # currently needed to download extensions
+    - gnutar     # use gnu-tar instead of tar
+    - gzip       # for .gz compression/decompression
     - civicrm@local
     - supercronic@local
 
@@ -55,7 +58,7 @@ paths:
     type: permissions
     uid: 61616
     gid: 61616
-    permissions: 0o0750
+    permissions: 0o0770
   - path: /run/php
     type: permissions
     uid: 61616

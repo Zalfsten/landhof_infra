@@ -36,6 +36,7 @@ package:
       - php-${{vars.civicrm_php_version}}-fileinfo
       - php-${{vars.civicrm_php_version}}-dom
       - rsync
+      - ca-certificates-bundle
 
 environment:
   contents:
