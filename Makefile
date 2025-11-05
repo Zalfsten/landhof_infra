@@ -42,13 +42,10 @@ $(KEY_PRIV) $(KEY_PUB): | $(BUILD_DIR)
 
 # Definiere ein Template für den Melange-Build-Befehl
 define MELANGE_BUILD
-	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work/$(BUILD_DIR) \
-	  -v /var/run/docker.sock:/var/run/docker.sock \
-	  -v /tmp:/tmp \
+	$(CONTAINER_RUNTIME) run --privileged --rm -v "$(PWD)":/work -w /work/$(BUILD_DIR) \
 	  cgr.dev/chainguard/melange build \
 	    --arch $(ARCH) \
 	    --vars-file $(BUILD_VARS_FILE) \
-	    --runner=docker \
 	    --signing-key melange.rsa \
 	    --repository-append https://packages.wolfi.dev/os \
 	    --keyring-append https://packages.wolfi.dev/os/wolfi-signing.rsa.pub \
