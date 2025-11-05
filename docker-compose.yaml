@@ -103,7 +103,7 @@ services:
   
   db:
     hostname: db
-    image: mariadb:12.0.2
+    image: docker.io/library/mariadb:12.0.2
     restart: unless-stopped
     user: mysql:mysql
     read_only: true
@@ -133,7 +133,7 @@ services:
       - /tmp
 
   nginx:
-    image: nginxinc/nginx-unprivileged:stable
+    image: docker.io/library/nginxinc/nginx-unprivileged:stable
     user: 101:61616
     ports:
       - 8760:8080
