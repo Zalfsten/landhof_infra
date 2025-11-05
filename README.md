@@ -8,6 +8,7 @@ Note: this part is obsolete/not needed as long as we're using the melange and ap
 # Get latest release versions from GitHub API
 MELANGE_VERSION=$(curl -s https://api.github.com/repos/chainguard-dev/melange/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
 APKO_VERSION=$(curl -s https://api.github.com/repos/chainguard-dev/apko/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+SOPS_VERSION=$(curl -s https://api.github.com/repos/getsops/sops/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
 
 # Detect architecture
 ARCH=$(uname -m)
@@ -35,6 +36,11 @@ sudo chmod +x /usr/local/bin/melange
 echo "Installing apko $APKO_VERSION for $ARCH..."
 curl -fsSL "https://github.com/chainguard-dev/apko/releases/download/$APKO_VERSION/apko_${APKO_VERSION#v}_linux_$ARCH.tar.gz" | sudo tar -xz -C /usr/local/bin --strip-components=1 apko_${APKO_VERSION#v}_linux_$ARCH/apko
 sudo chmod +x /usr/local/bin/apko
+
+# Download and install sops
+echo "Installing sops $SOPS_VERSION for $ARCH..."
+sudo curl -fsSL "https://github.com/getsops/sops/releases/download/$SOPS_VERSION/sops-${SOPS_VERSION}.linux.$ARCH" -o /usr/local/bin/sops
+sudo chmod +x /usr/local/bin/sops
 ```
 
 ## Build packages and image

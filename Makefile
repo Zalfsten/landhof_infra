@@ -13,17 +13,19 @@ KEY_PRIV := $(BUILD_DIR)/melange.rsa
 KEY_PUB := $(BUILD_DIR)/melange.rsa.pub
 CIVICRM_APK := $(PKG_DIR)/civicrm-$(CIVICRM_VERSION)-r0.apk
 SUPERCRONIC_APK := $(PKG_DIR)/supercronic-$(SUPERCRONIC_VERSION)-r0.apk
+ALL_APKS := $(CIVICRM_APK) $(SUPERCRONIC_APK)
 # APKO_FILE := config/civicrm.apko.yaml
 # APKO_TAR := $(BUILD_DIR)/civicrm.tar
 
-# Finde alle apko Konfigurationen und definiere die entsprechenden .tar-Ziele
+# Finde alle apko Konfigurationen und definiere die entsprechenden .tar- und .lock.json-Ziele
 APKO_CONFIGS := $(wildcard images/*.apko.yaml)
 APKO_TARS := $(patsubst images/%.apko.yaml,$(BUILD_DIR)/%.tar,$(APKO_CONFIGS))
+APKO_LOCKS := $(patsubst images/%.apko.yaml,images/%.apko.lock.json,$(APKO_CONFIGS))
 
 # Detect container runtime (docker or podman)
 CONTAINER_RUNTIME := $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
 
-.PHONY: all clean keygen packages civicrm supercronic apko images up
+.PHONY: all clean keygen packages civicrm supercronic apko images up lock
 
 all: up
 
@@ -64,40 +66,23 @@ $(SUPERCRONIC_APK): $(SUPERCRONIC_SRC) $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB) | $(
 	$(call MELANGE_BUILD,supercronic)
 
 # Generische Build-Regel für alle apko-Images
-$(BUILD_DIR)/%.tar: images/%.apko.yaml packages
-	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work -v /var/run/docker.sock:/var/run/docker.sock \
+$(BUILD_DIR)/%.tar: images/%.apko.yaml images/%.apko.lock.json $(ALL_APKS)
+	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work \
 	  cgr.dev/chainguard/apko build --arch $(ARCH) \
 	  --sbom-path $(BUILD_DIR) \
+	  --lockfile images/$*.apko.lock.json \
 	  --keyring-append ${BUILD_DIR}/melange.rsa.pub \
 	  $< $@:$(CIVICRM_VERSION) $@
 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(BUILD_DIR)
 
-# Note: A package lock file that is checked into git is a good thing for reproducible builds.
-# The issue is: it depends on the apko file, which is a build artifact itself.
-# So in our current approach the lock file can only be a build artifact as well -- which is good for nothing.
-
-# $(APKO_LOCK): $(APKO_FILE) $(CIVICRM_APK) $(SUPERCRONIC_APK)
-# 	docker run --rm -v "$(PWD)":/work -w /work \
-# 	  cgr.dev/chainguard/apko lock \
-# 	  --arch $(ARCH) \
-# 	  --keyring-append ${BUILD_DIR}/melange.rsa.pub \
-# 	  $(APKO_FILE) --output $(APKO_LOCK)
-#   docker run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/${BUILD_DIR}
-
-#$(APKO_TAR): $(APKO_FILE) $(APKO_LOCK) $(CIVICRM_APK) $(SUPERCRONIC_APK)
-# $(APKO_TAR): $(APKO_FILE) $(CIVICRM_APK) $(SUPERCRONIC_APK)
-# 	docker run --rm -v "$(PWD)":/work -w /work -v /var/run/docker.sock:/var/run/docker.sock \
-# 	  cgr.dev/chainguard/apko build --arch $(ARCH) \
-# 	  --sbom-path $(BUILD_DIR) \
-# 	  --lockfile $(APKO_LOCK) \
-# 	  --keyring-append ${BUILD_DIR}/melange.rsa.pub \
-# 	  $(APKO_FILE) civicrm:$(CIVICRM_VERSION) $(APKO_TAR)
-# $(APKO_TAR): $(APKO_FILE) $(CIVICRM_APK) $(SUPERCRONIC_APK)
-# 	docker run --rm -v "$(PWD)":/work -w /work -v /var/run/docker.sock:/var/run/docker.sock \
-# 	  cgr.dev/chainguard/apko build --arch $(ARCH) \
-# 	  --sbom-path $(BUILD_DIR) \
-# 	  --keyring-append ${BUILD_DIR}/melange.rsa.pub \
-# 	  $(APKO_FILE) civicrm:$(CIVICRM_VERSION) $(APKO_TAR)
+# Generische Regel zum Erstellen von apko lock files
+images/%.apko.lock.json: images/%.apko.yaml $(ALL_APKS)
+	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work \
+	  cgr.dev/chainguard/apko lock \
+	  --arch $(ARCH) \
+	  --keyring-append ${BUILD_DIR}/melange.rsa.pub \
+	  $< --output $@
+	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$@
 
 keygen: $(KEY_PRIV) $(KEY_PUB)
 
@@ -109,10 +94,12 @@ supercronic: $(SUPERCRONIC_APK)
 
 images: $(APKO_TARS)
 
+lock: $(APKO_LOCKS)
+
 apko: images
 
 image: images
-	$(foreach tar,$(APKO_TARS),docker load -i $(tar);)
+	$(foreach tar,$(APKO_TARS),${CONTAINER_RUNTIME} load -i $(tar);)
 
 up: image
 	sops exec-env .env.enc.yaml "${CONTAINER_RUNTIME} compose up -d"
