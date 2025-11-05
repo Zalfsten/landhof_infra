@@ -20,6 +20,9 @@ SUPERCRONIC_APK := $(PKG_DIR)/supercronic-$(SUPERCRONIC_VERSION)-r0.apk
 APKO_CONFIGS := $(wildcard images/*.apko.yaml)
 APKO_TARS := $(patsubst images/%.apko.yaml,$(BUILD_DIR)/%.tar,$(APKO_CONFIGS))
 
+# Detect container runtime (docker or podman)
+CONTAINER_RUNTIME := $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
+
 .PHONY: all clean keygen packages civicrm supercronic apko images up
 
 all: up
@@ -34,12 +37,12 @@ $(BUILD_VARS): .env | $(BUILD_DIR)
 	@echo "supercronic_version: $(SUPERCRONIC_VERSION)" >> $@
 
 $(KEY_PRIV) $(KEY_PUB): | $(BUILD_DIR)
-	docker run --rm -v "$(PWD)":/work -w /work/build cgr.dev/chainguard/melange keygen
-	docker run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(KEY_PRIV) /work/$(KEY_PUB)
+	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work/build cgr.dev/chainguard/melange keygen
+	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(KEY_PRIV) /work/$(KEY_PUB)
 
 # Definiere ein Template für den Melange-Build-Befehl
 define MELANGE_BUILD
-	docker run --rm -v "$(PWD)":/work -w /work/$(BUILD_DIR) \
+	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work/$(BUILD_DIR) \
 	  -v /var/run/docker.sock:/var/run/docker.sock \
 	  -v /tmp:/tmp \
 	  cgr.dev/chainguard/melange build \
@@ -50,7 +53,7 @@ define MELANGE_BUILD
 	    --repository-append https://packages.wolfi.dev/os \
 	    --keyring-append https://packages.wolfi.dev/os/wolfi-signing.rsa.pub \
 	    ../packages/$(1)/.melange.yaml
-	docker run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/${BUILD_DIR}/packages
+	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/${BUILD_DIR}/packages
 endef
 
 # Alle Dateien aus den Paket-Verzeichnissen
@@ -65,12 +68,12 @@ $(SUPERCRONIC_APK): $(SUPERCRONIC_SRC) $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB) | $(
 
 # Generische Build-Regel für alle apko-Images
 $(BUILD_DIR)/%.tar: images/%.apko.yaml packages
-	docker run --rm -v "$(PWD)":/work -w /work -v /var/run/docker.sock:/var/run/docker.sock \
+	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work -v /var/run/docker.sock:/var/run/docker.sock \
 	  cgr.dev/chainguard/apko build --arch $(ARCH) \
 	  --sbom-path $(BUILD_DIR) \
 	  --keyring-append ${BUILD_DIR}/melange.rsa.pub \
 	  $< $@:$(CIVICRM_VERSION) $@
-	docker run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(BUILD_DIR)
+	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(BUILD_DIR)
 
 # Note: A package lock file that is checked into git is a good thing for reproducible builds.
 # The issue is: it depends on the apko file, which is a build artifact itself.
@@ -115,7 +118,7 @@ image: images
 	$(foreach tar,$(APKO_TARS),docker load -i $(tar);)
 
 up: image
-	sops exec-env .env.enc.yaml 'docker compose up -d'
+	sops exec-env .env.enc.yaml "${CONTAINER_RUNTIME} compose up -d"
 
 clean:
 	rm -rf $(BUILD_DIR)
