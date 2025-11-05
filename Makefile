@@ -92,16 +92,12 @@ civicrm: $(CIVICRM_APK)
 
 supercronic: $(SUPERCRONIC_APK)
 
+apko: $(APKO_TARS)
+
 images: $(APKO_TARS)
-
-lock: $(APKO_LOCKS)
-
-apko: images
-
-image: images
 	$(foreach tar,$(APKO_TARS),${CONTAINER_RUNTIME} load -i $(tar);)
 
-up: image
+up: images
 	sops exec-env .env.enc.yaml "${CONTAINER_RUNTIME} compose up -d"
 
 clean:
