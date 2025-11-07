@@ -67,6 +67,7 @@ services:
   civicrm-install:
     image: docker.io/civicrm:${CIVICRM_VERSION}-amd64
     user: civicrm:civicrm
+    restart: "no"
     depends_on:
       db:
         condition: service_healthy
@@ -90,7 +91,6 @@ services:
       CIVICRM_SIGN_KEYS: ${CIVICRM_SIGN_KEYS}
       CIVICRM_SITE_KEY: ${CIVICRM_SITE_KEY}
     command: init
-    restart: no
     networks:
       - external  # needed, because CiviCRM downlaod addtional files during install
       - install-db
