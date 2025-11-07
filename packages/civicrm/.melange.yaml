@@ -59,6 +59,7 @@ pipeline:
       echo "AGPL-3.0" > ${{targets.destdir}}/usr/share/civicrm/LICENSE
 
       # Download cv (https://github.com/civicrm/cv)
+      mkdir -p ${{targets.destdir}}/usr/bin
       curl -fLsS https://github.com/civicrm/cv/releases/download/v${{vars.civicrm_cv_version}}/cv-${{vars.civicrm_cv_version}}.phar -o ${{targets.destdir}}/usr/bin/cv
       chmod +x ${{targets.destdir}}/usr/bin/cv
 
