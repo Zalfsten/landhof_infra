@@ -13,7 +13,7 @@ contents:
     - supercronic@local
 
 entrypoint:
-  command: "/entrypoint.sh"
+  command: "/usr/bin/entrypoint.sh"
 
 accounts:
   run-as: fpm
