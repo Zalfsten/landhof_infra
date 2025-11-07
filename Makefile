@@ -72,7 +72,7 @@ $(BUILD_DIR)/%.tar: images/%.apko.yaml images/%.apko.lock.json $(ALL_APKS)
 	  --sbom-path $(BUILD_DIR) \
 	  --lockfile images/$*.apko.lock.json \
 	  --keyring-append ${BUILD_DIR}/melange.rsa.pub \
-	  $< $@:$(CIVICRM_VERSION) $@
+	  $< $(notdir $*):$(CIVICRM_VERSION) $@
 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(BUILD_DIR)
 
 # Generische Regel zum Erstellen von apko lock files

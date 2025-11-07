@@ -1,6 +1,6 @@
 services:
   civicrm-app:
-    image: docker.io/build/civicrm:${CIVICRM_VERSION}-amd64
+    image: docker.io/civicrm:${CIVICRM_VERSION}-amd64
     user: fpm:civicrm
     command: fpm
     restart: unless-stopped
@@ -33,7 +33,7 @@ services:
       - /tmp
 
   civicrm-cron:
-    image: docker.io/build/civicrm:${CIVICRM_VERSION}-amd64
+    image: docker.io/civicrm:${CIVICRM_VERSION}-amd64
     user: supercronic:civicrm
     restart: unless-stopped
     depends_on:
@@ -65,7 +65,7 @@ services:
       - /tmp
 
   civicrm-install:
-    image: docker.io/build/civicrm:${CIVICRM_VERSION}-amd64
+    image: docker.io/civicrm:${CIVICRM_VERSION}-amd64
     user: civicrm:civicrm
     depends_on:
       db:
@@ -133,7 +133,7 @@ services:
       - /tmp
 
   nginx:
-    image: docker.io/library/nginxinc/nginx-unprivileged:stable
+    image: docker.io/nginxinc/nginx-unprivileged:stable
     user: 101:61616
     ports:
       - 8760:8080
