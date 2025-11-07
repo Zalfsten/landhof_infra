@@ -66,7 +66,7 @@ $(SUPERCRONIC_APK): $(SUPERCRONIC_SRC) $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB) | $(
 	$(call MELANGE_BUILD,supercronic)
 
 # Generische Build-Regel für alle apko-Images
-$(BUILD_DIR)/%.tar: images/%.apko.yaml images/%.apko.lock.json $(ALL_APKS)
+$(BUILD_DIR)/%.tar: images/%.apko.yaml $(ALL_APKS) | images/%.apko.lock.json
 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work \
 	  cgr.dev/chainguard/apko build --arch $(ARCH) \
 	  --sbom-path $(BUILD_DIR) \
