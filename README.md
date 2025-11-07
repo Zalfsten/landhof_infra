@@ -43,6 +43,50 @@ sudo curl -fsSL "https://github.com/getsops/sops/releases/download/$SOPS_VERSION
 sudo chmod +x /usr/local/bin/sops
 ```
 
+### podman compose on Debian
+
+To be more secure it's a good idea to use podman instead of docker. Install it like this Debian systems:
+
+```bash
+apt update && apt install podman docker-compose-plugin
+# tell podman to use the docker compose plugin
+mkdir -p ~/.config/containers
+echo '[engine]
+compose_providers = ["/usr/libexec/docker/cli-plugins/docker-compose"]
+' > ~/.config/containers/containers.conf
+```
+
+This only works, if the podman daemon is running (which is not the case by default, because a plain podman
+command doesn't need it). To start it as unprivileged user:
+
+```bash
+podman system service --time=0 &
+```
+
+It's also possible to create a systemd user service for this purpose:
+
+```bash
+mkdir -p ~/.config/systemd/user
+echo '[Unit]
+Description=Podman API Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/podman system service --time=0
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+' > ~/.config/systemd/user/podman.service
+systemctl --user daemon-reload
+systemctl --user enable podman.service
+systemctl --user start podman.service
+systemctl --user status podman.service
+```
+
+For productive use a system-wide systemd service will be necessary, that starts on system boot.
+
 ## Build packages and image
 
 Note: we need to use dockerized melange and apko tools as elevated privileges are requires that are not available
