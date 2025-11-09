@@ -2,7 +2,7 @@
   "version": "v1",
   "config": {
     "name": "images/civicrm.apko.yaml",
-    "checksum": "sha256-sMrV1v+WzRAQIU4os8bJ2DnRMhIZOLHTGN/fzO+0yXE="
+    "checksum": "sha256-4ihN0BAImQPeoFM4jz3rsFn7NWRXVGkjEL169Cj5mDg="
   },
   "contents": {
     "keyring": [
@@ -3395,18 +3395,18 @@
         "version": "6.7.2-r0",
         "architecture": "x86_64",
         "signature": {
-          "range": "bytes=0-646",
-          "checksum": "sha1-hRxgRDZCH1ktPVZrcWSFtcnlLfM="
+          "range": "bytes=0-645",
+          "checksum": "sha1-LUgqJ6PifDhxz37jFQ8DWwLn3P8="
         },
         "control": {
-          "range": "bytes=647-2368",
-          "checksum": "sha1-/UuMbQLAq7TLjrl3K6bRaOUeNhM="
+          "range": "bytes=646-2365",
+          "checksum": "sha1-XHkllkglK8GIjSizMtfK4Jcc+mw="
         },
         "data": {
-          "range": "bytes=2369-39384660",
-          "checksum": "sha256-ppo/Hn4LRLs3l3Ui/vfeLS8CgFZa/1oI7DUYhx8V6vQ="
+          "range": "bytes=2366-39383854",
+          "checksum": "sha256-DR+PwrfitxojTUOMO4tQyuqqq1GUrnfFi5B3r58Y2mI="
         },
-        "checksum": "Q1/UuMbQLAq7TLjrl3K6bRaOUeNhM="
+        "checksum": "Q1XHkllkglK8GIjSizMtfK4Jcc+mw="
       },
       {
         "name": "gnutar-rmt",
@@ -3471,18 +3471,18 @@
         "version": "0.2.38-r0",
         "architecture": "x86_64",
         "signature": {
-          "range": "bytes=0-644",
-          "checksum": "sha1-aVpTG3mEwqHmZ56O90/sclQHdJE="
+          "range": "bytes=0-646",
+          "checksum": "sha1-MDSVjBaLzz4oocOmoaXWTJUY0lw="
         },
         "control": {
-          "range": "bytes=645-1933",
-          "checksum": "sha1-2nQNGd17Am/B4RpS6x4OMzfRfcU="
+          "range": "bytes=647-1940",
+          "checksum": "sha1-ymAuSSaIFt9S/7+1PiV28j6sVhQ="
         },
         "data": {
-          "range": "bytes=1934-7604505",
-          "checksum": "sha256-isJAocGaqm4GKEo+cKt2woCltGNSxUi/q++sny8RCHM="
+          "range": "bytes=1941-7604513",
+          "checksum": "sha256-TnWnw/0sc+hZnckdDOUjEdE1Jm698Xsf6DtT7ga055A="
         },
-        "checksum": "Q12nQNGd17Am/B4RpS6x4OMzfRfcU="
+        "checksum": "Q1ymAuSSaIFt9S/7+1PiV28j6sVhQ="
       },
       {
         "name": "wget",

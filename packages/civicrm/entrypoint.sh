@@ -94,6 +94,19 @@ if [ "$MODE" = "init" ]; then
   cv api4 Setting.set +v communityMessagesUrl=''
   cv api4 Setting.set +v ext_repo_url=''
 
+  log "INFO: Grant permissions to web server user..."
+  WEB_SERVER_UID="${WEB_SERVER_UID:-101}"
+  # Grant read permissions to user 101 (nginx)
+  setfacl -R -m u:$WEB_SERVER_UID:rx /var/www/html
+  # Grant write permissions to user 101 (nginx)
+  setfacl -R -m u:$WEB_SERVER_UID:rwx /var/www/html/public
+  setfacl -R -m u:$WEB_SERVER_UID:rwx /var/www/html/private
+  setfacl -R -m u:$WEB_SERVER_UID:rwx /var/www/html/ext
+  # Ensure all new file in the folder also gain write permissions by user 101 (nginx)
+  setfacl -R -d -m u:$WEB_SERVER_UID:rwx /var/www/html/public
+  setfacl -R -d -m u:$WEB_SERVER_UID:rwx /var/www/html/private
+  setfacl -R -d -m u:$WEB_SERVER_UID:rwx /var/www/html/ext
+
   echo 'CiviCRM installation completed successfully!'
 elif [ "$MODE" = "fpm" ]; then
   log "INFO: Generating PHP-FPM health check script..."
@@ -101,7 +114,12 @@ elif [ "$MODE" = "fpm" ]; then
   # Read FPM config values
   config=/etc/php/php-fpm.d/zzz-civicrm.conf
   listen=$(grep -E "^\s*listen\s*=" $config | sed 's/.*=\s*//' | tr -d ' ')
-  listen=${listen:-"[::]:9000"}
+  # Listen-Adresse ggf. anpassen
+  if echo "$listen" | grep -q '^\[::\]:'; then
+    listen="localhost:${listen#\[::\]:}"
+  fi
+  listen=${listen:-"localhost:9000"}
+
   ping_path=$(grep -E "^\s*ping\.path\s*=" $config | sed 's/.*=\s*//' | tr -d ' ')
   pong=$(grep -E "^\s*ping\.response\s*=" $config | sed 's/.*=\s*//' | tr -d ' ')
   pong=${pong:-'pong'}

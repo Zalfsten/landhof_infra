@@ -65,24 +65,33 @@ $(CIVICRM_APK): $(CIVICRM_SRC) $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB) | $(BUILD_DI
 $(SUPERCRONIC_APK): $(SUPERCRONIC_SRC) $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB) | $(BUILD_DIR)
 	$(call MELANGE_BUILD,supercronic)
 
-# Generische Build-Regel für alle apko-Images
-$(BUILD_DIR)/%.tar: images/%.apko.yaml $(ALL_APKS) images/%.apko.lock.json
+# For now we skip lock file creation, because it's very time consuming
+$(BUILD_DIR)/%.tar: images/%.apko.yaml $(ALL_APKS)
 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work \
 	  cgr.dev/chainguard/apko build --arch $(ARCH) \
 	  --sbom-path $(BUILD_DIR) \
-	  --lockfile images/$*.apko.lock.json \
 	  --keyring-append ${BUILD_DIR}/melange.rsa.pub \
 	  $< $(notdir $*):$(CIVICRM_VERSION) $@
 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(BUILD_DIR)
 
-# Generische Regel zum Erstellen von apko lock files
-images/%.apko.lock.json: images/%.apko.yaml $(ALL_APKS)
-	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work \
-	  cgr.dev/chainguard/apko lock \
-	  --arch $(ARCH) \
-	  --keyring-append ${BUILD_DIR}/melange.rsa.pub \
-	  $< --output $@
-	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$@
+# # Generische Build-Regel für alle apko-Images
+# $(BUILD_DIR)/%.tar: images/%.apko.yaml $(ALL_APKS) images/%.apko.lock.json
+# 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work \
+# 	  cgr.dev/chainguard/apko build --arch $(ARCH) \
+# 	  --sbom-path $(BUILD_DIR) \
+# 	  --lockfile images/$*.apko.lock.json \
+# 	  --keyring-append ${BUILD_DIR}/melange.rsa.pub \
+# 	  $< $(notdir $*):$(CIVICRM_VERSION) $@
+# 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(BUILD_DIR)
+
+# # Generische Regel zum Erstellen von apko lock files
+# images/%.apko.lock.json: images/%.apko.yaml $(ALL_APKS)
+# 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work \
+# 	  cgr.dev/chainguard/apko lock \
+# 	  --arch $(ARCH) \
+# 	  --keyring-append ${BUILD_DIR}/melange.rsa.pub \
+# 	  $< --output $@
+# 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$@
 
 keygen: $(KEY_PRIV) $(KEY_PUB)
 

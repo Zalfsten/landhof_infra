@@ -36,6 +36,7 @@ package:
       - php-${{vars.civicrm_php_version}}-fileinfo
       - php-${{vars.civicrm_php_version}}-dom
       - rsync
+      - acl
       - ca-certificates-bundle
 
 environment:
@@ -54,7 +55,7 @@ pipeline:
       rm /tmp/civicrm.tar.gz
 
       # Finde Duplikate und ersetze sie durch symbolische Links
-      rdfind -makesymlinks true ${{targets.destdir}}/usr/share/civicrm
+      rdfind -makehardlinks true ${{targets.destdir}}/usr/share/civicrm
 
       echo "AGPL-3.0" > ${{targets.destdir}}/usr/share/civicrm/LICENSE
 

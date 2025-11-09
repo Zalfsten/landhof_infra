@@ -15,6 +15,9 @@ contents:
 entrypoint:
   command: "/usr/bin/entrypoint.sh"
 
+environment:
+  WEB_SERVER_UID: 101
+
 accounts:
   run-as: fpm
   users:
@@ -28,10 +31,6 @@ accounts:
       shell: /sbin/nologin
     - username: supercronic
       uid: 61618
-      gid: 61616
-      shell: /sbin/nologin
-    - username: nginx
-      uid: 101
       gid: 61616
       shell: /sbin/nologin
   groups:
@@ -55,11 +54,6 @@ paths:
     gid: 61616
     permissions: 0o0770
   - path: /var/www/html/ext
-    type: permissions
-    uid: 61616
-    gid: 61616
-    permissions: 0o0770
-  - path: /run/php
     type: permissions
     uid: 61616
     gid: 61616

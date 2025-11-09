@@ -87,6 +87,45 @@ systemctl --user status podman.service
 
 For productive use a system-wide systemd service will be necessary, that starts on system boot.
 
+### using `setfacl`
+
+We want to use a single nginx service for multiple app downstream. A common practice if nginx is also
+use as web serve (not just as reverse proxy) is to mount a volume that is shared between nginx and
+the app. Both -- the app and nginx -- need permissions to the files in this volume. This is typically
+done with the help of a user group that is shared between nginx and the app. This works fine as long
+as there is only one app, because the nginx container can be run with and arbitary group, e.g.
+`www-data:12345`. When a second app with a second group comes into play, this is not possible any more,
+as we can only specify a single group when running the container. A solution would be to use a single
+group for all services inside the same compose file. This reduces security and flexibilty -- maybe we
+would like to use group for another purpose. This is where `setfacl` comes into play.
+
+With `setfacl` we can give specific user access permissions to `/var/www/html` although they do not
+share a group. This can be done with the entrypoint scrip of the app, completely independent of nginx:
+
+```bash
+# Grant read permissions to user 101 (nginx)
+setfacl -R -m u:101:rx /var/www/html
+# Grant write permissions to user 101 (nginx)
+setfacl -R -m u:101:rwx /var/www/html/uploads
+setfacl -R -m u:101:rwx /var/www/html/cache
+# Ensure all new file in the folder also gain write permissions by user 101 (nginx)
+setfacl -R -d -m u:101:rwx /var/www/html/uploads
+setfacl -R -d -m u:101:rwx /var/www/html/cache
+```
+
+Only the approach requires that the host volume that contains the container volumes is mounted with
+the mount option `acl`. This is the case on current Debian and ubuntu systems, even if it's not so
+easy to notice, beacse the `acl` mount option is part of the `default` mount option. To test, if your
+volume support `acl`:
+
+```bash
+touch /tmp/testfile
+setfacl -m u:nobody:r /tmp/testfile
+getfacl /tmp/testfile
+```
+
+If user `nobody` is listed in the permissions, everything is fine.
+
 ## Build packages and image
 
 Note: we need to use dockerized melange and apko tools as elevated privileges are requires that are not available
