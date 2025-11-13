@@ -45,7 +45,6 @@ environment:
       - busybox
       - curl
       - ca-certificates-bundle
-      - rdfind
 
 pipeline:
   - runs: |
@@ -53,9 +52,6 @@ pipeline:
       curl -fsSL https://download.civicrm.org/civicrm-${{vars.civicrm_version}}-standalone.tar.gz -o /tmp/civicrm.tar.gz
       tar -xf /tmp/civicrm.tar.gz -C ${{targets.destdir}}/usr/share/civicrm --strip-components=1
       rm /tmp/civicrm.tar.gz
-
-      # Finde Duplikate und ersetze sie durch symbolische Links
-      rdfind -makehardlinks true ${{targets.destdir}}/usr/share/civicrm
 
       echo "AGPL-3.0" > ${{targets.destdir}}/usr/share/civicrm/LICENSE
 
