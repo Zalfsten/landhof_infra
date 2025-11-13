@@ -44,8 +44,11 @@ $(KEY_PRIV) $(KEY_PUB): | $(BUILD_DIR)
 
 # Definiere ein Template für den Melange-Build-Befehl
 define MELANGE_BUILD
-	$(CONTAINER_RUNTIME) run --privileged --rm -v "$(PWD)":/work -w /work/$(BUILD_DIR) \
+	$(CONTAINER_RUNTIME) run --privileged --rm \
+	  -v "$(PWD)":/work \
+	  -w /work/$(BUILD_DIR) \
 	  cgr.dev/chainguard/melange build \
+	  	 --apk-cache-dir /work/apk_cache \
 	    --arch $(ARCH) \
 	    --vars-file $(BUILD_VARS_FILE) \
 	    --signing-key melange.rsa \
@@ -67,11 +70,14 @@ $(SUPERCRONIC_APK): $(SUPERCRONIC_SRC) $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB) | $(
 
 # For now we skip lock file creation, because it's very time consuming
 $(BUILD_DIR)/%.tar: images/%.apko.yaml $(ALL_APKS)
-	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work \
+	$(CONTAINER_RUNTIME) run --rm \
+	  -v "$(PWD)":/work \
+	  -w /work \
 	  cgr.dev/chainguard/apko build --arch $(ARCH) \
-	  --sbom-path $(BUILD_DIR) \
-	  --keyring-append ${BUILD_DIR}/melange.rsa.pub \
-	  $< $(notdir $*):$(CIVICRM_VERSION) $@
+	  	--cache-dir /work/apk_cache \
+		--sbom-path $(BUILD_DIR) \
+		--keyring-append ${BUILD_DIR}/melange.rsa.pub \
+		$< $(notdir $*):$(CIVICRM_VERSION) $@
 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(BUILD_DIR)
 
 # # Generische Build-Regel für alle apko-Images

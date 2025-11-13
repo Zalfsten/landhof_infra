@@ -35,6 +35,10 @@
 		}
 	},
 
+	"postCreateCommand": [
+		"mkdir -p apk_cache"
+	],
+
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	"remoteUser": "vscode"
 }
