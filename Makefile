@@ -11,15 +11,6 @@ BUILD_VARS_FILE := build.vars.yaml
 BUILD_VARS := $(BUILD_DIR)/$(BUILD_VARS_FILE)
 KEY_PRIV := $(BUILD_DIR)/melange.rsa
 KEY_PUB := $(BUILD_DIR)/melange.rsa.pub
-CIVICRM_APK := \
-	$(PKG_DIR)/civicrm-$(CIVICRM_VERSION)-r0.apk \
-	$(PKG_DIR)/civicrm-cli-$(CIVICRM_VERSION)-r0.apk \
-	$(PKG_DIR)/civicrm-php-fpm-$(CIVICRM_VERSION)-r0.apk \
-	$(PKG_DIR)/civicrm-supercronic-$(CIVICRM_VERSION)-r0.apk
-SUPERCRONIC_APK := $(PKG_DIR)/supercronic-$(SUPERCRONIC_VERSION)-r0.apk
-ALL_APKS := $(CIVICRM_APK) $(SUPERCRONIC_APK)
-# APKO_FILE := config/civicrm.apko.yaml
-# APKO_TAR := $(BUILD_DIR)/civicrm.tar
 
 # Finde alle apko Konfigurationen und definiere die entsprechenden .tar- und .lock.json-Ziele
 IMAGES_DIR := $(BUILD_DIR)/images
@@ -47,13 +38,21 @@ $(KEY_PRIV) $(KEY_PUB): | $(BUILD_DIR)
 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work/build cgr.dev/chainguard/melange keygen
 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(KEY_PRIV) /work/$(KEY_PUB)
 
-# Definiere ein Template für den Melange-Build-Befehl
-define MELANGE_BUILD
+# --- Generische Paket / Stamp Definitionen ---------------------------------
+# Liste aller lokal per melange zu bauenden Pakete (ein Verzeichnis unter packages/)
+PACKAGES := civicrm supercronic
+
+# Kombinierte Regel-Template: definiert zuerst die <pkg>_STAMP Variable und
+# erzeugt dann die konkrete Build-Regel für dieses Paket. Damit entfällt die
+# vorherige separate foreach-Eval Schleife zur Stamp-Variablen-Erzeugung.
+define GEN_PKG_RULE
+$(1) := $(BUILD_DIR)/.$(1).stamp
+$(BUILD_DIR)/.$(1).stamp: $(shell find packages/$(1) -type f) $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB) | $(BUILD_DIR)
 	$(CONTAINER_RUNTIME) run --privileged --rm \
 	  -v "$(PWD)":/work \
 	  -w /work/$(BUILD_DIR) \
 	  cgr.dev/chainguard/melange build \
-	  	--apk-cache-dir /work/apk_cache \
+	    --apk-cache-dir /work/apk_cache \
 	    --arch $(ARCH) \
 	    --vars-file $(BUILD_VARS_FILE) \
 	    --signing-key melange.rsa \
@@ -61,48 +60,51 @@ define MELANGE_BUILD
 	    --keyring-append https://packages.wolfi.dev/os/wolfi-signing.rsa.pub \
 	    ../packages/$(1)/.melange.yaml
 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/${BUILD_DIR}/packages
+	@touch $$@
 endef
 
-# Definiere Stempel-Dateien, um mehrfache Builds zu vermeiden
-CIVICRM_STAMP := $(BUILD_DIR)/.civicrm.stamp
-SUPERCRONIC_STAMP := $(BUILD_DIR)/.supercronic.stamp
+# Evaluiere für jedes Paket eine konkrete Rule (inkl. Variable)
+$(foreach p,$(PACKAGES),$(eval $(call GEN_PKG_RULE,$(p))))
 
-# Alle Dateien aus den Paket-Verzeichnissen
-CIVICRM_SRC := $(shell find packages/civicrm -type f)
-SUPERCRONIC_SRC := $(shell find packages/supercronic -type f)
-
-$(CIVICRM_STAMP): $(SUPERCRONIC_STAMP) $(CIVICRM_SRC) $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB) | $(BUILD_DIR)
-	$(call MELANGE_BUILD,civicrm)
-	@touch $@
-
-$(SUPERCRONIC_STAMP): $(SUPERCRONIC_SRC) $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB) | $(BUILD_DIR)
-	$(call MELANGE_BUILD,supercronic)
-	@touch $@
-
-$(IMAGES_DIR):
-	mkdir -p $@
-
-$(IMAGES_DIR)/%.tar: images/%.apko.yaml $(CIVICRM_STAMP) $(SUPERCRONIC_STAMP) | $(IMAGES_DIR)
+define APKO_BUILD
 	$(CONTAINER_RUNTIME) run --rm \
 	  -v "$(PWD)":/work \
 	  -w /work \
 	  cgr.dev/chainguard/apko build --arch $(ARCH) \
 	    --cache-dir /work/apk_cache \
-	    --sbom-path $(BUILD_DIR) \
 	    --repository-append $(BUILD_DIR)/packages \
-	    --keyring-append ${BUILD_DIR}/melange.rsa.pub \
-	    $< $(notdir $*):$(CIVICRM_VERSION) $@
+	    --sbom-path $(BUILD_DIR) \
+	    --keyring-append $(KEY_PUB) \
+	    $< $(notdir $1):$(2) $@
 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(IMAGES_DIR)
+endef
 
-# # Generische Build-Regel für alle apko-Images
-# $(BUILD_DIR)/%.tar: images/%.apko.yaml $(ALL_APKS) images/%.apko.lock.json
-# 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work \
+$(IMAGES_DIR):
+	mkdir -p $@
+
+$(IMAGES_DIR)/civicrm-init.tar: images/civicrm-init.apko.yaml $(civicrm) | $(IMAGES_DIR)
+	$(call APKO_BUILD,civicrm-init,$(CIVICRM_VERSION))
+
+$(IMAGES_DIR)/civicrm-php-fpm.tar: images/civicrm-php-fpm.apko.yaml $(civicrm) | $(IMAGES_DIR)
+	$(call APKO_BUILD,civicrm-php-fpm,$(CIVICRM_VERSION))
+
+$(IMAGES_DIR)/civicrm-supercronic.tar: images/civicrm-supercronic.apko.yaml $(civicrm) $(supercronic) | $(IMAGES_DIR)
+	$(call APKO_BUILD,civicrm-supercronic,$(CIVICRM_VERSION))
+
+# Generische Build-Regel für alle apko-Images.
+# Diese Regel verwendet die oben definierten _DEPS-Variablen, um die korrekten APK-Abhängigkeiten zu ermitteln.
+# $(IMAGES_DIR)/%.tar: images/%.apko.yaml $(KEY_PUB) $(call stamps_from_deps,$($(notdir $*)_DEPS)) | $(IMAGES_DIR)
+# 	@echo "Building image for '$*' with dependencies: images/%.apko.yaml $(KEY_PUB) $(call stamps_from_deps,$($(notdir $*)_DEPS))"
+# 	$(CONTAINER_RUNTIME) run --rm \
+# 	  -v "$(PWD)":/work \
+# 	  -w /work \
 # 	  cgr.dev/chainguard/apko build --arch $(ARCH) \
-# 	  --sbom-path $(BUILD_DIR) \
-# 	  --lockfile images/$*.apko.lock.json \
-# 	  --keyring-append ${BUILD_DIR}/melange.rsa.pub \
-# 	  $< $(notdir $*):$(CIVICRM_VERSION) $@
-# 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(BUILD_DIR)
+# 	    --cache-dir /work/apk_cache \
+# 	    --repository-append $(BUILD_DIR)/packages \
+# 	    --sbom-path $(BUILD_DIR) \
+# 	    --keyring-append $(KEY_PUB) \
+# 	    $< $(notdir $*):$(CIVICRM_VERSION) $@
+# 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(IMAGES_DIR)
 
 # # Generische Regel zum Erstellen von apko lock files
 # images/%.apko.lock.json: images/%.apko.yaml $(ALL_APKS)
@@ -115,11 +117,7 @@ $(IMAGES_DIR)/%.tar: images/%.apko.yaml $(CIVICRM_STAMP) $(SUPERCRONIC_STAMP) | 
 
 keygen: $(KEY_PRIV) $(KEY_PUB)
 
-packages: $(CIVICRM_STAMP) $(SUPERCRONIC_STAMP)
-
-civicrm: $(CIVICRM_APK)
-
-supercronic: $(SUPERCRONIC_APK)
+packages: $(PACKAGES)
 
 apko: $(APKO_TARS)
 
@@ -134,4 +132,3 @@ up: images
 
 clean:
 	rm -rf $(BUILD_DIR)
-
