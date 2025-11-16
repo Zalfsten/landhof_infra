@@ -11,15 +11,20 @@ BUILD_VARS_FILE := build.vars.yaml
 BUILD_VARS := $(BUILD_DIR)/$(BUILD_VARS_FILE)
 KEY_PRIV := $(BUILD_DIR)/melange.rsa
 KEY_PUB := $(BUILD_DIR)/melange.rsa.pub
-CIVICRM_APK := $(PKG_DIR)/civicrm-$(CIVICRM_VERSION)-r0.apk
+CIVICRM_APK := \
+	$(PKG_DIR)/civicrm-$(CIVICRM_VERSION)-r0.apk \
+	$(PKG_DIR)/civicrm-cli-$(CIVICRM_VERSION)-r0.apk \
+	$(PKG_DIR)/civicrm-php-fpm-$(CIVICRM_VERSION)-r0.apk \
+	$(PKG_DIR)/civicrm-supercronic-$(CIVICRM_VERSION)-r0.apk
 SUPERCRONIC_APK := $(PKG_DIR)/supercronic-$(SUPERCRONIC_VERSION)-r0.apk
 ALL_APKS := $(CIVICRM_APK) $(SUPERCRONIC_APK)
 # APKO_FILE := config/civicrm.apko.yaml
 # APKO_TAR := $(BUILD_DIR)/civicrm.tar
 
 # Finde alle apko Konfigurationen und definiere die entsprechenden .tar- und .lock.json-Ziele
+IMAGES_DIR := $(BUILD_DIR)/images
 APKO_CONFIGS := $(wildcard images/*.apko.yaml)
-APKO_TARS := $(patsubst images/%.apko.yaml,$(BUILD_DIR)/%.tar,$(APKO_CONFIGS))
+APKO_TARS := $(patsubst images/%.apko.yaml,$(IMAGES_DIR)/%.tar,$(APKO_CONFIGS))
 APKO_LOCKS := $(patsubst images/%.apko.yaml,images/%.apko.lock.json,$(APKO_CONFIGS))
 
 # Detect container runtime (docker or podman)
@@ -48,7 +53,7 @@ define MELANGE_BUILD
 	  -v "$(PWD)":/work \
 	  -w /work/$(BUILD_DIR) \
 	  cgr.dev/chainguard/melange build \
-	  	 --apk-cache-dir /work/apk_cache \
+	  	--apk-cache-dir /work/apk_cache \
 	    --arch $(ARCH) \
 	    --vars-file $(BUILD_VARS_FILE) \
 	    --signing-key melange.rsa \
@@ -58,27 +63,36 @@ define MELANGE_BUILD
 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/${BUILD_DIR}/packages
 endef
 
+# Definiere Stempel-Dateien, um mehrfache Builds zu vermeiden
+CIVICRM_STAMP := $(BUILD_DIR)/.civicrm.stamp
+SUPERCRONIC_STAMP := $(BUILD_DIR)/.supercronic.stamp
+
 # Alle Dateien aus den Paket-Verzeichnissen
 CIVICRM_SRC := $(shell find packages/civicrm -type f)
 SUPERCRONIC_SRC := $(shell find packages/supercronic -type f)
 
-$(CIVICRM_APK): $(CIVICRM_SRC) $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB) | $(BUILD_DIR)
+$(CIVICRM_STAMP): $(SUPERCRONIC_STAMP) $(CIVICRM_SRC) $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB) | $(BUILD_DIR)
 	$(call MELANGE_BUILD,civicrm)
+	@touch $@
 
-$(SUPERCRONIC_APK): $(SUPERCRONIC_SRC) $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB) | $(BUILD_DIR)
+$(SUPERCRONIC_STAMP): $(SUPERCRONIC_SRC) $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB) | $(BUILD_DIR)
 	$(call MELANGE_BUILD,supercronic)
+	@touch $@
 
-# For now we skip lock file creation, because it's very time consuming
-$(BUILD_DIR)/%.tar: images/%.apko.yaml $(ALL_APKS)
+$(IMAGES_DIR):
+	mkdir -p $@
+
+$(IMAGES_DIR)/%.tar: images/%.apko.yaml $(CIVICRM_STAMP) $(SUPERCRONIC_STAMP) | $(IMAGES_DIR)
 	$(CONTAINER_RUNTIME) run --rm \
 	  -v "$(PWD)":/work \
 	  -w /work \
 	  cgr.dev/chainguard/apko build --arch $(ARCH) \
-	  	--cache-dir /work/apk_cache \
-		--sbom-path $(BUILD_DIR) \
-		--keyring-append ${BUILD_DIR}/melange.rsa.pub \
-		$< $(notdir $*):$(CIVICRM_VERSION) $@
-	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(BUILD_DIR)
+	    --cache-dir /work/apk_cache \
+	    --sbom-path $(BUILD_DIR) \
+	    --repository-append $(BUILD_DIR)/packages \
+	    --keyring-append ${BUILD_DIR}/melange.rsa.pub \
+	    $< $(notdir $*):$(CIVICRM_VERSION) $@
+	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(IMAGES_DIR)
 
 # # Generische Build-Regel für alle apko-Images
 # $(BUILD_DIR)/%.tar: images/%.apko.yaml $(ALL_APKS) images/%.apko.lock.json
@@ -101,7 +115,7 @@ $(BUILD_DIR)/%.tar: images/%.apko.yaml $(ALL_APKS)
 
 keygen: $(KEY_PRIV) $(KEY_PUB)
 
-packages: civicrm supercronic
+packages: $(CIVICRM_STAMP) $(SUPERCRONIC_STAMP)
 
 civicrm: $(CIVICRM_APK)
 
@@ -110,7 +124,10 @@ supercronic: $(SUPERCRONIC_APK)
 apko: $(APKO_TARS)
 
 images: $(APKO_TARS)
-	$(foreach tar,$(APKO_TARS),${CONTAINER_RUNTIME} load -i $(tar);)
+	@echo "Loading built images into $(CONTAINER_RUNTIME)"
+	@for tar in $(APKO_TARS); do \
+		$(CONTAINER_RUNTIME) load -i "$$tar"; \
+	done
 
 up: images
 	sops exec-env .env.enc.yaml "${CONTAINER_RUNTIME} compose up -d"

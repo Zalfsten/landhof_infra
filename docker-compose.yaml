@@ -1,13 +1,11 @@
 services:
   civicrm-app:
-    image: docker.io/civicrm:${CIVICRM_VERSION}-amd64
-    user: fpm:civicrm
-    command: fpm
+    image: docker.io/civicrm-php-fpm:${CIVICRM_VERSION}-amd64
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
-      civicrm-install:
+      civicrm-init:
         condition: service_completed_successfully
     read_only: true
     volumes:
@@ -16,7 +14,7 @@ services:
       - civicrm-private:/var/www/html/private:rw
       - civicrm-ext:/var/www/html/ext:rw
     healthcheck:
-      test: ["CMD", "php", "/tmp/php-fpm-healthcheck.php"]
+      test: ["CMD", "php", "/usr/bin/php-fpm_healthcheck.php"]
       interval: 5s
       timeout: 4s
       start_period: 10s
@@ -32,14 +30,13 @@ services:
     tmpfs:
       - /tmp
 
-  civicrm-cron:
-    image: docker.io/civicrm:${CIVICRM_VERSION}-amd64
-    user: supercronic:civicrm
+  civicrm-supercronic:
+    image: docker.io/civicrm-supercronic:${CIVICRM_VERSION}-amd64
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
-      civicrm-install:
+      civicrm-init:
         condition: service_completed_successfully
     read_only: true
     volumes:
@@ -47,7 +44,6 @@ services:
       - civicrm-public:/var/www/html/public:rw
       - civicrm-private:/var/www/html/private:rw
       - civicrm-ext:/var/www/html/ext:rw
-    command: supercronic
     healthcheck:
       test: ["CMD", "pgrep supercronic"]
       interval: 5s
@@ -55,7 +51,7 @@ services:
       start_period: 4s
       retries: 3
     networks:
-      # - external
+      - external
       - cron-db
     cap_drop:
       - ALL
@@ -64,9 +60,8 @@ services:
     tmpfs:
       - /tmp
 
-  civicrm-install:
-    image: docker.io/civicrm:${CIVICRM_VERSION}-amd64
-    user: civicrm:civicrm
+  civicrm-init:
+    image: docker.io/civicrm-init:${CIVICRM_VERSION}-amd64
     restart: "no"
     depends_on:
       db:
@@ -82,7 +77,7 @@ services:
       CIVICRM_DB_PASSWORD: ${MYSQL_PASSWORD}
       CIVICRM_DB_HOST: db
       CIVICRM_DB_NAME: civicrm
-      CIVICRM_UF_BASEURL: http://localhost:8760
+      CIVICRM_UF_BASEURL: http://localhost:8080
       CIVICRM_LANG: de_DE
       CIVICRM_ADMIN_USER: admin
       CIVICRM_ADMIN_EMAIL: admin@example.com
@@ -90,7 +85,6 @@ services:
       CIVICRM_CRED_KEYS: ${CIVICRM_CRED_KEYS}
       CIVICRM_SIGN_KEYS: ${CIVICRM_SIGN_KEYS}
       CIVICRM_SITE_KEY: ${CIVICRM_SITE_KEY}
-    command: init
     networks:
       - external  # needed, because CiviCRM downlaod addtional files during install
       - install-db
@@ -136,7 +130,7 @@ services:
     image: docker.io/nginxinc/nginx-unprivileged:stable
     user: 101:101
     ports:
-      - 8760:8080
+      - 8080:8080
     read_only: true
     volumes:
       - civicrm:/var/www/html:rw

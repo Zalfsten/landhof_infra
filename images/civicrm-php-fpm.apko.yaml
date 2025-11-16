@@ -6,17 +6,15 @@ contents:
     - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
   packages:
     - busybox
-    - wget       # currently needed to download extensions
-    - gnutar     # use gnu-tar instead of tar
-    - gzip       # for .gz compression/decompression
-    - civicrm@local
-    - supercronic@local
+    # - wget       # currently needed to download extensions
+    # - gnutar     # use gnu-tar instead of tar
+    # - gzip       # for .gz compression/decompression
+    - civicrm-php-fpm@local
 
 entrypoint:
-  command: "/usr/bin/entrypoint.sh"
+  command: /usr/bin/civicrm_init_php-fpm_healthchecks.sh
 
-environment:
-  WEB_SERVER_UID: 101
+cmd: /usr/sbin/php-fpm
 
 accounts:
   run-as: fpm
@@ -29,35 +27,12 @@ accounts:
       uid: 61617
       gid: 61616
       shell: /sbin/nologin
-    - username: supercronic
-      uid: 61618
-      gid: 61616
+    - username: webserver
+      uid: 101
       shell: /sbin/nologin
   groups:
     - groupname: civicrm
       gid: 61616
-
-paths:
-  - path: /var/www/html
-    type: permissions
-    uid: 61616
-    gid: 61616
-    permissions: 0o0750
-  - path: /var/www/html/public
-    type: permissions
-    uid: 61616
-    gid: 61616
-    permissions: 0o0770
-  - path: /var/www/html/private
-    type: permissions
-    uid: 61616
-    gid: 61616
-    permissions: 0o0770
-  - path: /var/www/html/ext
-    type: permissions
-    uid: 61616
-    gid: 61616
-    permissions: 0o0770
 
 work-dir: /var/www/html
 

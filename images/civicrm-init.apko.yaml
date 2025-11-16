@@ -1,0 +1,72 @@
+contents:
+  repositories:
+    - https://packages.wolfi.dev/os
+    - '@local /work/build/packages'
+  keyring:
+    - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+  packages:
+    - busybox
+    # - wget       # currently needed to download extensions
+    # - gnutar     # use gnu-tar instead of tar
+    # - gzip       # for .gz compression/decompression
+    - civicrm@local
+
+entrypoint:
+  command: "/usr/bin/civicrm_init.sh"
+
+accounts:
+  run-as: civicrm
+  users:
+    - username: civicrm
+      uid: 61616
+      gid: 61616
+      shell: /sbin/nologin
+    - username: webserver
+      uid: 101
+      shell: /sbin/nologin
+  groups:
+    - groupname: civicrm
+      gid: 61616
+
+paths:
+  - path: /var/www/html
+    type: permissions
+    uid: 61616
+    gid: 61616
+    permissions: 0o0750
+  - path: /var/www/html/public
+    type: permissions
+    uid: 61616
+    gid: 61616
+    permissions: 0o0770
+  - path: /var/www/html/private
+    type: permissions
+    uid: 61616
+    gid: 61616
+    permissions: 0o0770
+  - path: /var/www/html/ext
+    type: permissions
+    uid: 61616
+    gid: 61616
+    permissions: 0o0770
+
+work-dir: /var/www/html
+
+# environment:
+#   - CIVICRM_USER_ID=${CIVICRM_USER_ID}
+#   - CIVICRM_GROUP_ID=${CIVICRM_GROUP_ID}
+
+# apko unterstützt KEINE Variablen-Interpolation oder direkten Zugriff auf Umgebungsvariablen im YAML-File.
+# Alle Werte müssen statisch im YAML stehen oder beim Build-Prozess (z.B. mit yq/envsubst) vorab ersetzt werden.
+
+# Workaround:
+# 1. Erzeuge das apko.yaml dynamisch aus einer Template-Datei (z.B. mit envsubst, yq, gomplate, etc.)
+# 2. Beispiel mit envsubst:
+#    cp civicrm.apko.yaml.template civicrm.apko.yaml
+#    envsubst < civicrm.apko.yaml.template > civicrm.apko.yaml
+
+# In civicrm.apko.yaml.template:
+#   uid: ${CIVICRM_USER_ID}
+#   gid: ${CIVICRM_GROUP_ID}
+
+# Dann apko wie gewohnt ausführen.
