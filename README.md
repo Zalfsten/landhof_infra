@@ -99,18 +99,18 @@ as we can only specify a single group when running the container. A solution wou
 group for all services inside the same compose file. This reduces security and flexibilty -- maybe we
 would like to use group for another purpose. This is where `setfacl` comes into play.
 
-With `setfacl` we can give specific user access permissions to `/var/www/html` although they do not
+With `setfacl` we can give specific user access permissions to `/var/www/civicrm` although they do not
 share a group. This can be done with the entrypoint scrip of the app, completely independent of nginx:
 
 ```bash
 # Grant read permissions to user 101 (nginx)
-setfacl -R -m u:101:rx /var/www/html
+setfacl -R -m u:101:rx /var/www/civicrm
 # Grant write permissions to user 101 (nginx)
-setfacl -R -m u:101:rwx /var/www/html/uploads
-setfacl -R -m u:101:rwx /var/www/html/cache
+setfacl -R -m u:101:rwx /var/www/civicrm/uploads
+setfacl -R -m u:101:rwx /var/www/civicrm/cache
 # Ensure all new file in the folder also gain write permissions by user 101 (nginx)
-setfacl -R -d -m u:101:rwx /var/www/html/uploads
-setfacl -R -d -m u:101:rwx /var/www/html/cache
+setfacl -R -d -m u:101:rwx /var/www/civicrm/uploads
+setfacl -R -d -m u:101:rwx /var/www/civicrm/cache
 ```
 
 Only the approach requires that the host volume that contains the container volumes is mounted with
@@ -198,3 +198,9 @@ sops exec-env .env.enc.yaml 'docker compose up'
 ## references
 
 * <https://github.com/civicrm/civicrm-docker>
+
+## Further commands
+
+```bash
+apk add --allow-untrusted /tmp/packages/x86_64/squid-config-7.3-r0.apk
+```

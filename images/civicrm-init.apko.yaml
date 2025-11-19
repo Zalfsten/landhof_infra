@@ -29,44 +29,25 @@ accounts:
       gid: 61616
 
 paths:
-  - path: /var/www/html
+  - path: /var/www/civicrm
     type: permissions
     uid: 61616
     gid: 61616
     permissions: 0o0750
-  - path: /var/www/html/public
+  - path: /var/www/civicrm/public
     type: permissions
     uid: 61616
     gid: 61616
     permissions: 0o0770
-  - path: /var/www/html/private
+  - path: /var/www/civicrm/private
     type: permissions
     uid: 61616
     gid: 61616
     permissions: 0o0770
-  - path: /var/www/html/ext
+  - path: /var/www/civicrm/ext
     type: permissions
     uid: 61616
     gid: 61616
     permissions: 0o0770
 
-work-dir: /var/www/html
-
-# environment:
-#   - CIVICRM_USER_ID=${CIVICRM_USER_ID}
-#   - CIVICRM_GROUP_ID=${CIVICRM_GROUP_ID}
-
-# apko unterstützt KEINE Variablen-Interpolation oder direkten Zugriff auf Umgebungsvariablen im YAML-File.
-# Alle Werte müssen statisch im YAML stehen oder beim Build-Prozess (z.B. mit yq/envsubst) vorab ersetzt werden.
-
-# Workaround:
-# 1. Erzeuge das apko.yaml dynamisch aus einer Template-Datei (z.B. mit envsubst, yq, gomplate, etc.)
-# 2. Beispiel mit envsubst:
-#    cp civicrm.apko.yaml.template civicrm.apko.yaml
-#    envsubst < civicrm.apko.yaml.template > civicrm.apko.yaml
-
-# In civicrm.apko.yaml.template:
-#   uid: ${CIVICRM_USER_ID}
-#   gid: ${CIVICRM_GROUP_ID}
-
-# Dann apko wie gewohnt ausführen.
+work-dir: /var/www/civicrm

@@ -1,7 +1,7 @@
 vars:
-  civicrm_version: 6.7.2
-  civicrm_cv_version: 0.3.66
-  civicrm_php_version: 8.3
+  civicrm_version:
+  civicrm_cv_version:
+  civicrm_php_version:
 
 package:
   name: civicrm
@@ -34,7 +34,7 @@ pipeline:
       cp civicrm_init.sh ${{targets.destdir}}/usr/bin/civicrm_init.sh
       chmod +x ${{targets.destdir}}/usr/bin/civicrm_init.sh
   - runs: |
-      mkdir -p ${{targets.destdir}}/var/www/html/public ${{targets.destdir}}/var/www/html/private ${{targets.destdir}}/var/www/html/ext
+      mkdir -p ${{targets.destdir}}/var/www/civicrm/public ${{targets.destdir}}/var/www/civicrm/private ${{targets.destdir}}/var/www/civicrm/ext
 
 subpackages:
 

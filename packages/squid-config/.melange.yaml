@@ -1,0 +1,24 @@
+vars:
+  squid_version:
+
+package:
+  name: squid-config
+  version: ${{vars.squid_version}}
+  epoch: 0
+  description: "A a config folder in /etc/squid for squid proxy server"
+  copyright:
+    - license: MIT
+
+  dependencies:
+    runtime:
+      - squid
+
+environment:
+  contents:
+    packages:
+      - busybox
+
+pipeline:
+  - runs: |
+      mkdir -p ${{targets.destdir}}/etc/squid/conf.d ${{targets.destdir}}/etc/squid/whitelists
+      cp squid.conf ${{targets.destdir}}/etc/squid/squid.conf

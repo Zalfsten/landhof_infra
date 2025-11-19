@@ -1,18 +1,51 @@
 services:
+  squid:
+    image: docker.io/squid:${SQUID_VERSION}-amd64
+    restart: unless-stopped
+    ports:
+      - 3128:3128
+    read_only: true
+    volumes:
+      - ./squid/civicrm.conf:/etc/squid/conf.d/civicrm.conf:ro
+      - ./squid/civicrm_whitelist.txt:/etc/squid/whitelists/civicrm_whitelist.txt:ro 
+    networks:
+      - external
+      - squid-civicrm-app
+      - squid-civicrm-supercronic
+      - squid-civicrm-init
+    tmpfs:
+      - /tmp:rw
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/squid.pid", "-a", "-r", "/tmp/squid.pid"]
+      interval: 5s
+      timeout: 4s
+      start_period: 10s
+      retries: 3
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
   civicrm-app:
     image: docker.io/civicrm-php-fpm:${CIVICRM_VERSION}-amd64
     restart: unless-stopped
     depends_on:
+      squid:
+        condition: service_healthy
       db:
         condition: service_healthy
       civicrm-init:
         condition: service_completed_successfully
     read_only: true
     volumes:
-      - civicrm:/var/www/html:ro
-      - civicrm-public:/var/www/html/public:rw
-      - civicrm-private:/var/www/html/private:rw
-      - civicrm-ext:/var/www/html/ext:rw
+      - civicrm:/var/www/civicrm:ro
+      - civicrm-public:/var/www/civicrm/public:rw
+      - civicrm-private:/var/www/civicrm/private:rw
+      - civicrm-ext:/var/www/civicrm/ext:rw
+    environment:
+      http_proxy: http://squid:3128
+      https_proxy: http://squid:3128
+      no_proxy: localhost,127.0.0.1
     healthcheck:
       test: ["CMD", "php", "/usr/bin/php-fpm_healthcheck.php"]
       interval: 5s
@@ -20,9 +53,9 @@ services:
       start_period: 10s
       retries: 3
     networks:
-      - external
-      - app-db
-      - nginx-app
+      - squid-civicrm-app
+      - civicrm-app-db
+      - civicrm-app-nginx
     cap_drop:
       - ALL
     security_opt:
@@ -34,16 +67,22 @@ services:
     image: docker.io/civicrm-supercronic:${CIVICRM_VERSION}-amd64
     restart: unless-stopped
     depends_on:
+      squid:
+        condition: service_healthy
       db:
         condition: service_healthy
       civicrm-init:
         condition: service_completed_successfully
     read_only: true
     volumes:
-      - civicrm:/var/www/html:ro
-      - civicrm-public:/var/www/html/public:rw
-      - civicrm-private:/var/www/html/private:rw
-      - civicrm-ext:/var/www/html/ext:rw
+      - civicrm:/var/www/civicrm:ro
+      - civicrm-public:/var/www/civicrm/public:rw
+      - civicrm-private:/var/www/civicrm/private:rw
+      - civicrm-ext:/var/www/civicrm/ext:rw
+    environment:
+      http_proxy: http://squid:3128
+      https_proxy: http://squid:3128
+      no_proxy: localhost,127.0.0.1
     healthcheck:
       test: ["CMD", "pgrep supercronic"]
       interval: 5s
@@ -51,8 +90,8 @@ services:
       start_period: 4s
       retries: 3
     networks:
-      - external
-      - cron-db
+      - civicrm-supercronic-db
+      - squid-civicrm-supercronic
     cap_drop:
       - ALL
     security_opt:
@@ -64,15 +103,20 @@ services:
     image: docker.io/civicrm-init:${CIVICRM_VERSION}-amd64
     restart: "no"
     depends_on:
+      squid:
+        condition: service_healthy
       db:
         condition: service_healthy
     read_only: true
     volumes:
-      - civicrm:/var/www/html:rw
-      - civicrm-public:/var/www/html/public:rw
-      - civicrm-private:/var/www/html/private:rw
-      - civicrm-ext:/var/www/html/ext:rw
+      - civicrm:/var/www/civicrm:rw
+      - civicrm-public:/var/www/civicrm/public:rw
+      - civicrm-private:/var/www/civicrm/private:rw
+      - civicrm-ext:/var/www/civicrm/ext:rw
     environment:
+      http_proxy: http://squid:3128
+      https_proxy: http://squid:3128
+      no_proxy: localhost,127.0.0.1
       CIVICRM_DB_USER: civicrm
       CIVICRM_DB_PASSWORD: ${MYSQL_PASSWORD}
       CIVICRM_DB_HOST: db
@@ -86,8 +130,8 @@ services:
       CIVICRM_SIGN_KEYS: ${CIVICRM_SIGN_KEYS}
       CIVICRM_SITE_KEY: ${CIVICRM_SITE_KEY}
     networks:
-      - external  # needed, because CiviCRM downlaod addtional files during install
-      - install-db
+      - civicrm-init-db
+      - squid-civicrm-init
     cap_drop:
       - ALL
     security_opt:
@@ -116,9 +160,9 @@ services:
       timeout: 5s
       retries: 3
     networks:
-      - app-db
-      - cron-db
-      - install-db
+      - civicrm-app-db
+      - civicrm-supercronic-db
+      - civicrm-init-db
     cap_drop:
       - ALL
     security_opt:
@@ -133,12 +177,13 @@ services:
       - 8080:8080
     read_only: true
     volumes:
-      - civicrm:/var/www/html:rw
-      - civicrm-public:/var/www/html/public:rw
-      - civicrm-private:/var/www/html/private:rw
-      - civicrm-ext:/var/www/html/ext:rw
-      - ./nginx.conf:/etc/nginx/conf.d/civicrm.conf:ro
+      - civicrm:/var/www/civicrm:rw
+      - civicrm-public:/var/www/civicrm/public:rw
+      - civicrm-private:/var/www/civicrm/private:rw
+      - civicrm-ext:/var/www/civicrm/ext:rw
       - /dev/null:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/nginx_status.conf:/etc/nginx/conf.d/nginx_status.conf:ro
+      - ./nginx/civicrm.conf:/etc/nginx/conf.d/civicrm.conf:ro
     depends_on:
       civicrm-app:
         condition: service_healthy
@@ -150,7 +195,7 @@ services:
       retries: 3
     networks:
       - external
-      - nginx-app
+      - civicrm-app-nginx
     cap_drop:
       - ALL
     security_opt:
@@ -168,11 +213,26 @@ volumes:
 
 networks:
   external:
-  app-db:
+  squid-civicrm-app:
     internal: true
-  install-db:
+    ipam:
+      config:
+        - subnet: 172.31.250.0/24
+  squid-civicrm-supercronic:
     internal: true
-  cron-db:
+    ipam:
+      config:
+        - subnet: 172.31.251.0/24
+  squid-civicrm-init:
     internal: true
-  nginx-app:
+    ipam:
+      config:
+        - subnet: 172.31.252.0/24
+  civicrm-app-db:
+    internal: true
+  civicrm-init-db:
+    internal: true
+  civicrm-supercronic-db:
+    internal: true
+  civicrm-app-nginx:
     internal: true

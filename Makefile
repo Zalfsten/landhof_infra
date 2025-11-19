@@ -33,6 +33,7 @@ $(BUILD_VARS): .env | $(BUILD_DIR)
 	@echo "civicrm_cv_version: $(CIVICRM_CV_VERSION)" >> $@
 	@echo "civicrm_php_version: $(CIVICRM_PHP_VERSION)" >> $@
 	@echo "supercronic_version: $(SUPERCRONIC_VERSION)" >> $@
+	@echo "squid_version: $(SQUID_VERSION)" >> $@
 
 $(KEY_PRIV) $(KEY_PUB): | $(BUILD_DIR)
 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work/build cgr.dev/chainguard/melange keygen
@@ -40,7 +41,7 @@ $(KEY_PRIV) $(KEY_PUB): | $(BUILD_DIR)
 
 # --- Generische Paket / Stamp Definitionen ---------------------------------
 # Liste aller lokal per melange zu bauenden Pakete (ein Verzeichnis unter packages/)
-PACKAGES := civicrm supercronic
+PACKAGES := civicrm squid-config supercronic
 
 # Kombinierte Regel-Template: definiert zuerst die <pkg>_STAMP Variable und
 # erzeugt dann die konkrete Build-Regel für dieses Paket. Damit entfällt die
@@ -90,6 +91,9 @@ $(IMAGES_DIR)/civicrm-php-fpm.tar: images/civicrm-php-fpm.apko.yaml $(civicrm) |
 
 $(IMAGES_DIR)/civicrm-supercronic.tar: images/civicrm-supercronic.apko.yaml $(civicrm) $(supercronic) | $(IMAGES_DIR)
 	$(call APKO_BUILD,civicrm-supercronic,$(CIVICRM_VERSION))
+
+$(IMAGES_DIR)/squid.tar: images/squid.apko.yaml $(squid-config) | $(IMAGES_DIR)
+	$(call APKO_BUILD,squid,$(SQUID_VERSION))
 
 # Generische Build-Regel für alle apko-Images.
 # Diese Regel verwendet die oben definierten _DEPS-Variablen, um die korrekten APK-Abhängigkeiten zu ermitteln.

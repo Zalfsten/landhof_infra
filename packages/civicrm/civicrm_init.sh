@@ -38,7 +38,7 @@ get_var_or_secret() {
 }
 
 # Prüfen ob bereits installiert
-if [ -f "/var/www/html/private/civicrm.settings.php" ]; then
+if [ -f "/var/www/civicrm/private/civicrm.settings.php" ]; then
   log "INFO: CiviCRM already installed, skipping initialization"
   exit 0
 fi
@@ -57,7 +57,7 @@ cred_keys="$(get_var_or_secret CIVICRM_CRED_KEYS '')"
 sign_keys="$(get_var_or_secret CIVICRM_SIGN_KEYS '')"
 
 log "INFO: Initializing CiviCRM..."
-tar -xf /usr/share/civicrm/civicrm.tar.gz -C /var/www/html/ --strip-components=1
+tar -xf /usr/share/civicrm/civicrm.tar.gz -C /var/www/civicrm/ --strip-components=1
 
 log "INFO: Running cv core:install..."
 cv core:install -K -n \
@@ -68,19 +68,19 @@ cv core:install -K -n \
   -m extras.adminPass="${admin_password}" \
   -m extras.adminEmail="${admin_email}"
 
-chmod 440 /var/www/html/private/civicrm.settings.php
+chmod 440 /var/www/civicrm/private/civicrm.settings.php
 
 if [ -z "$site_key" ]; then
   log "INFO: Patching CIVICRM_SITE_KEY in civicrm.settings.php ..."
-  sed -i "s/define('CIVICRM_SITE_KEY'.*/define('CIVICRM_SITE_KEY', '${site_key}');/" /var/www/html/private/civicrm.settings.php
+  sed -i "s/define('CIVICRM_SITE_KEY'.*/define('CIVICRM_SITE_KEY', '${site_key}');/" /var/www/civicrm/private/civicrm.settings.php
 fi
 if [ -z "$cred_keys" ]; then
   log "INFO: Patching CIVICRM_CRED_KEYS in civicrm.settings.php ..."
-  sed -i "s/define('CIVICRM_CRED_KEYS'.*/define('CIVICRM_CRED_KEYS', '${cred_keys}');/" /var/www/html/private/civicrm.settings.php
+  sed -i "s/define('CIVICRM_CRED_KEYS'.*/define('CIVICRM_CRED_KEYS', '${cred_keys}');/" /var/www/civicrm/private/civicrm.settings.php
 fi
 if [ -z "$sign_keys" ]; then
   log "INFO: Patching CIVICRM_SIGN_KEYS in civicrm.settings.php ..."
-  sed -i "s/define('CIVICRM_SIGN_KEYS'.*/define('CIVICRM_SIGN_KEYS', '${sign_keys}');/" /var/www/html/private/civicrm.settings.php
+  sed -i "s/define('CIVICRM_SIGN_KEYS'.*/define('CIVICRM_SIGN_KEYS', '${sign_keys}');/" /var/www/civicrm/private/civicrm.settings.php
 fi
 
 log "INFO: Installation completed, configuring additional settings..."
@@ -88,19 +88,21 @@ cv api4 Setting.set +v debug_enabled=0
 cv api4 Setting.set +v backtrace=0
 cv api4 Setting.set +v enableSSL=1
 cv api4 Setting.set +v verifySSL=1
-cv api4 Setting.set +v communityMessagesUrl=''
-cv api4 Setting.set +v ext_repo_url=''
+# cv api4 Setting.set +v communityMessagesUrl=''
+# cv api4 Setting.set +v ext_repo_url=''
 
-# Grant read permissions to user 101 (nginx)
-setfacl -R -m u:webserver:rx /var/www/html
-# Grant write permissions to user 101 (nginx)
-setfacl -R -m u:webserver:rwx /var/www/html/public
-setfacl -R -m u:webserver:rwx /var/www/html/private
-setfacl -R -m u:webserver:rwx /var/www/html/ext
-# Ensure all new file in the folder also gain write permissions by user 101 (nginx)
-setfacl -R -d -m u:webserver:rwx /var/www/html/public
-setfacl -R -d -m u:webserver:rwx /var/www/html/private
-setfacl -R -d -m u:webserver:rwx /var/www/html/ext
+# Grant read permissions to user webserver
+setfacl -R -m u:webserver:rx /var/www/civicrm
+# Grant write permissions to user webserver
+setfacl -R -m u:webserver:rwx /var/www/civicrm/public
+setfacl -R -m u:webserver:rwx /var/www/civicrm/private
+setfacl -R -m u:webserver:rwx /var/www/civicrm/ext
+# Ensure all new file in the folder also gain write permissions for user webserver
+setfacl -R -d -m u:webserver:rwx /var/www/civicrm/public
+setfacl -R -d -m u:webserver:rwx /var/www/civicrm/private
+setfacl -R -d -m u:webserver:rwx /var/www/civicrm/ext
+# Set group permissions to rwx to mimic POSIX permissions
+setfacl -R -m g::rwx /var/www/civicrm
 log "INFO: CiviCRM installation completed successfully!"
 
 if [ $# -ne 0 ]; then

@@ -1,0 +1,22 @@
+contents:
+  repositories:
+    - https://packages.wolfi.dev/os
+    - '@local /work/build/packages'
+  keyring:
+    - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+  packages:
+    - busybox
+    - squid-config@local
+
+cmd: /usr/sbin/squid -N -f /etc/squid/squid.conf
+
+accounts:
+  run-as: squid
+  users:
+    - username: squid
+      uid: 31
+      gid: 31
+      shell: /sbin/nologin
+  groups:
+    - groupname: squid
+      gid: 31

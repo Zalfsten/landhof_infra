@@ -31,7 +31,7 @@ $packet = fcgi_record(FCGI_BEGIN_REQUEST, $begin);
 
 // Minimal environment
 $params = [
-    'SCRIPT_FILENAME' => '/var/www/html/index.php',
+    'SCRIPT_FILENAME' => '/var/www/civicrm/index.php',
     'SCRIPT_NAME'     => $pingPath,
     'REQUEST_METHOD'  => 'GET',
     'SERVER_PROTOCOL' => 'HTTP/1.1',

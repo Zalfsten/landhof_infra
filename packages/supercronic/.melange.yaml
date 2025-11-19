@@ -1,5 +1,5 @@
 vars:
-  supercronic_version: 0.2.38
+  supercronic_version:
 
 package:
   name: supercronic
