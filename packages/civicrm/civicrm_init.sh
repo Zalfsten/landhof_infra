@@ -2,6 +2,10 @@
 set -e
 
 umask 0007
+setfacl -R -m g::rwx /var/www/civicrm
+setfacl -R -m m::rwx /var/www/civicrm
+setfacl -R -d -m g::rwx /var/www/civicrm
+setfacl -R -d -m m::rwx /var/www/civicrm
 
 log() {
     echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')] $*" >&2;
@@ -101,8 +105,6 @@ setfacl -R -m u:webserver:rwx /var/www/civicrm/ext
 setfacl -R -d -m u:webserver:rwx /var/www/civicrm/public
 setfacl -R -d -m u:webserver:rwx /var/www/civicrm/private
 setfacl -R -d -m u:webserver:rwx /var/www/civicrm/ext
-# Set group permissions to rwx to mimic POSIX permissions
-setfacl -R -m g::rwx /var/www/civicrm
 log "INFO: CiviCRM installation completed successfully!"
 
 if [ $# -ne 0 ]; then
