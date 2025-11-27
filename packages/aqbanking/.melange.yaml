@@ -1,0 +1,73 @@
+vars:
+  aqbanking_version: 6.6.4
+  aqbanking_build: 548
+  gwenhywfar_version: 5.13.0
+  gwenhywfar_build: 550
+
+package:
+  name: aqbanking
+  version: ${{vars.aqbanking_version}}
+  epoch: 0
+  description: "AqBanking - Banking and finance library"
+  copyright:
+    - license: GPL-2.0
+
+  dependencies:
+    runtime:
+      - busybox
+      - gnutls
+      - libgcrypt
+      - libidn2
+      - libxslt
+      - xmlsec-openssl
+      - zlib
+
+environment:
+  contents:
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - curl
+      - gnutls-dev
+      - libgcrypt-dev
+      - openssl-dev
+      - pkgconf
+      - xmlsec-openssl
+      - xmlsec-dev
+      - zlib
+
+pipeline:
+  - runs: |
+      curl -fsSL https://www.aquamaniac.de/rdm/attachments/download/${{vars.gwenhywfar_build}}/gwenhywfar-${{vars.gwenhywfar_version}}.tar.gz -o /tmp/gwenhywfar.tar.gz
+      cd /tmp
+      tar xzf gwenhywfar.tar.gz
+      cd gwenhywfar-${{vars.gwenhywfar_version}}
+      mkdir -p gui/no /tmp/gwenhywfar-build
+      ./configure --enable-release --without-guis --disable-dependency-tracking --prefix=/tmp/gwenhywfar-build
+      cat > gui/no/Makefile <<EOF
+      all:
+      install:
+      EOF
+      make
+      make install
+  - runs: |
+      curl -fsSL https://www.aquamaniac.de/rdm/attachments/download/${{vars.aqbanking_build}}/aqbanking-${{vars.aqbanking_version}}.tar.gz -o /tmp/aqbanking.tar.gz
+      cd /tmp
+      mkdir -p aqbanking-build
+      tar xzf aqbanking.tar.gz
+      cd aqbanking-${{vars.aqbanking_version}}
+      export PKG_CONFIG_PATH=/tmp/gwenhywfar-build/lib/pkgconfig/:$PKG_CONFIG_PATH
+      ./configure --enable-release --disable-tutorials --disable-dependency-tracking --prefix=/tmp/aqbanking-build
+      make
+      make install
+  - runs: |
+      mkdir -p ${{targets.destdir}}/usr/bin ${{targets.destdir}}/usr/lib
+      for f in /tmp/aqbanking-build/bin/aqbanking-cli /tmp/aqbanking-build/bin/aqebics-tool /tmp/aqbanking-build/bin/aqhbci-tool4 /tmp/aqbanking-build/bin/aqofxconnect-tool /tmp/aqbanking-build/bin/aqpaypal-tool /tmp/gwenhywfar-build/lib/libgwenhywfar.so*; do
+        strip --strip-unneeded "$f"
+        cp "$f" ${{targets.destdir}}/usr/bin/
+      done
+      strip --strip-unneeded /tmp/gwenhywfar-build/lib/libgwenhywfar.so /tmp/aqbanking-build/lib/libaqbanking.so
+      cp /tmp/gwenhywfar-build/lib/libgwenhywfar.so* ${{targets.destdir}}/usr/lib/
+      cp /tmp/aqbanking-build/lib/libaqbanking.so* ${{targets.destdir}}/usr/lib/
+      cp -r /tmp/aqbanking-build/lib/aqbanking ${{targets.destdir}}/usr/lib/
