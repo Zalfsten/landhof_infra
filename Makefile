@@ -21,6 +21,12 @@ APKO_LOCKS := $(patsubst images/%.apko.yaml,images/%.apko.lock.json,$(APKO_CONFI
 # Detect container runtime (docker or podman)
 CONTAINER_RUNTIME := $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
 
+# Detect host directory for docker-in-docker mounts (when running in devcontainer)
+HOST_DIR := $(shell $(CONTAINER_RUNTIME) inspect $(shell hostname) --format '{{range .Mounts}}{{if eq .Destination "$(PWD)"}}{{.Source}}{{end}}{{end}}' 2>/dev/null)
+ifeq ($(HOST_DIR),)
+    HOST_DIR := $(PWD)
+endif
+
 .PHONY: all clean keygen packages civicrm supercronic apko images up lock
 
 all: up
@@ -36,8 +42,8 @@ $(BUILD_VARS): .env | $(BUILD_DIR)
 	@echo "squid_version: $(SQUID_VERSION)" >> $@
 
 $(KEY_PRIV) $(KEY_PUB): | $(BUILD_DIR)
-	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work -w /work/build cgr.dev/chainguard/melange keygen
-	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(KEY_PRIV) /work/$(KEY_PUB)
+	$(CONTAINER_RUNTIME) run --rm -v "$(HOST_DIR)":/work -w /work/build cgr.dev/chainguard/melange keygen
+	$(CONTAINER_RUNTIME) run --rm -v "$(HOST_DIR)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(KEY_PRIV) /work/$(KEY_PUB)
 
 # --- Generische Paket / Stamp Definitionen ---------------------------------
 # Liste aller lokal per melange zu bauenden Pakete (ein Verzeichnis unter packages/)
@@ -50,7 +56,7 @@ define GEN_PKG_RULE
 $(1) := $(BUILD_DIR)/.$(1).stamp
 $(BUILD_DIR)/.$(1).stamp: $(shell find packages/$(1) -type f) $(BUILD_VARS) $(KEY_PRIV) $(KEY_PUB) | $(BUILD_DIR)
 	$(CONTAINER_RUNTIME) run --privileged --rm \
-	  -v "$(PWD)":/work \
+	  -v "$(HOST_DIR)":/work \
 	  -w /work/$(BUILD_DIR) \
 	  cgr.dev/chainguard/melange build \
 	    --apk-cache-dir /work/apk_cache \
@@ -60,7 +66,7 @@ $(BUILD_DIR)/.$(1).stamp: $(shell find packages/$(1) -type f) $(BUILD_VARS) $(KE
 	    --repository-append https://packages.wolfi.dev/os \
 	    --keyring-append https://packages.wolfi.dev/os/wolfi-signing.rsa.pub \
 	    ../packages/$(1)/.melange.yaml
-	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/${BUILD_DIR}/packages
+	$(CONTAINER_RUNTIME) run --rm -v "$(HOST_DIR)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/${BUILD_DIR}/packages
 	@touch $$@
 endef
 
@@ -69,7 +75,7 @@ $(foreach p,$(PACKAGES),$(eval $(call GEN_PKG_RULE,$(p))))
 
 define APKO_BUILD
 	$(CONTAINER_RUNTIME) run --rm \
-	  -v "$(PWD)":/work \
+	  -v "$(HOST_DIR)":/work \
 	  -w /work \
 	  cgr.dev/chainguard/apko build --arch $(ARCH) \
 	    --cache-dir /work/apk_cache \
@@ -77,22 +83,25 @@ define APKO_BUILD
 	    --sbom-path $(BUILD_DIR) \
 	    --keyring-append $(KEY_PUB) \
 	    $< $(notdir $1):$(2) $@
-	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(IMAGES_DIR)
+	$(CONTAINER_RUNTIME) run --rm -v "$(HOST_DIR)":/work alpine chown -R $(shell id -u):$(shell id -g) /work/$(IMAGES_DIR)
 endef
 
 $(IMAGES_DIR):
 	mkdir -p $@
 
-$(IMAGES_DIR)/civicrm-init.tar: images/civicrm-init.apko.yaml $(civicrm) | $(IMAGES_DIR)
+$(IMAGES_DIR)/civicrm-init.tar: images/civicrm-init.apko.yaml $(civicrm) $(KEY_PUB) | $(IMAGES_DIR)
 	$(call APKO_BUILD,civicrm-init,$(CIVICRM_VERSION))
 
-$(IMAGES_DIR)/civicrm-php-fpm.tar: images/civicrm-php-fpm.apko.yaml $(civicrm) | $(IMAGES_DIR)
+$(IMAGES_DIR)/civicrm-php-fpm.tar: images/civicrm-php-fpm.apko.yaml $(civicrm) $(KEY_PUB) | $(IMAGES_DIR)
 	$(call APKO_BUILD,civicrm-php-fpm,$(CIVICRM_VERSION))
 
-$(IMAGES_DIR)/civicrm-supercronic.tar: images/civicrm-supercronic.apko.yaml $(civicrm) $(supercronic) | $(IMAGES_DIR)
+$(IMAGES_DIR)/civicrm-supercronic.tar: images/civicrm-supercronic.apko.yaml $(civicrm) $(supercronic) $(KEY_PUB) | $(IMAGES_DIR)
 	$(call APKO_BUILD,civicrm-supercronic,$(CIVICRM_VERSION))
 
-$(IMAGES_DIR)/squid.tar: images/squid.apko.yaml $(squid-config) | $(IMAGES_DIR)
+$(IMAGES_DIR)/civicrm-aqbanking.tar: images/civicrm-aqbanking.apko.yaml $(civicrm) $(aqbanking) $(KEY_PUB) | $(IMAGES_DIR)
+	$(call APKO_BUILD,civicrm-aqbanking,$(CIVICRM_VERSION))
+
+$(IMAGES_DIR)/squid.tar: images/squid.apko.yaml $(squid-config) $(KEY_PUB) | $(IMAGES_DIR)
 	$(call APKO_BUILD,squid,$(SQUID_VERSION))
 
 # Generische Build-Regel für alle apko-Images.
