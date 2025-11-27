@@ -1,0 +1,31 @@
+contents:
+  repositories:
+    - https://packages.wolfi.dev/os
+    - '@local /work/build/packages'
+  keyring:
+    - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+  packages:
+    - busybox
+    - wget
+    - gnutar
+    - gzip
+    - civicrm-aqbanking@local
+
+cmd: /usr/bin/fetch-transactions.sh
+
+accounts:
+  run-as: aqbanking
+  users:
+    - username: civicrm
+      uid: 61616
+      gid: 61616
+      shell: /sbin/nologin
+    - username: aqbanking
+      uid: 61619
+      gid: 61616
+      shell: /sbin/nologin
+  groups:
+    - groupname: civicrm
+      gid: 61616
+
+work-dir: /var/www/civicrm

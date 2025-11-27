@@ -7,16 +7,17 @@ services:
     read_only: true
     volumes:
       - ./squid/civicrm.conf:/etc/squid/conf.d/civicrm.conf:ro
-      - ./squid/civicrm_whitelist.txt:/etc/squid/whitelists/civicrm_whitelist.txt:ro 
+      - ./squid/civicrm_whitelist.txt:/etc/squid/whitelists/civicrm_whitelist.txt:ro
     networks:
       - external
       - squid-civicrm-app
       - squid-civicrm-supercronic
       - squid-civicrm-init
+      - squid-civicrm-aqbanking
     tmpfs:
       - /tmp:rw
     healthcheck:
-      test: ["CMD", "test", "-f", "/tmp/squid.pid", "-a", "-r", "/tmp/squid.pid"]
+      test: [ "CMD", "test", "-f", "/tmp/squid.pid", "-a", "-r", "/tmp/squid.pid" ]
       interval: 5s
       timeout: 4s
       start_period: 10s
@@ -47,7 +48,7 @@ services:
       https_proxy: http://squid:3128
       no_proxy: localhost,127.0.0.1
     healthcheck:
-      test: ["CMD", "php", "/usr/bin/php-fpm_healthcheck.php"]
+      test: [ "CMD", "php", "/usr/bin/php-fpm_healthcheck.php" ]
       interval: 5s
       timeout: 4s
       start_period: 10s
@@ -84,7 +85,7 @@ services:
       https_proxy: http://squid:3128
       no_proxy: localhost,127.0.0.1
     healthcheck:
-      test: ["CMD", "pgrep supercronic"]
+      test: [ "CMD", "pgrep supercronic" ]
       interval: 5s
       timeout: 4s
       start_period: 4s
@@ -92,6 +93,38 @@ services:
     networks:
       - civicrm-supercronic-db
       - squid-civicrm-supercronic
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+
+  civicrm-aqbanking:
+    image: docker.io/civicrm-aqbanking:${CIVICRM_VERSION}-amd64
+    restart: unless-stopped
+    depends_on:
+      squid:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      civicrm-init:
+        condition: service_completed_successfully
+    read_only: true
+    volumes:
+      - civicrm:/var/www/civicrm:ro
+      - civicrm-public:/var/www/civicrm/public:rw
+      - civicrm-private:/var/www/civicrm/private:rw
+      - civicrm-ext:/var/www/civicrm/ext:rw
+      - ./aqbanking:/home/civicrm/.aqbanking:rw # Persist aqbanking config
+      - civicrm-aqbanking-trigger:/run/aqbanking:rw # Trigger volume
+    environment:
+      http_proxy: http://squid:3128
+      https_proxy: http://squid:3128
+      no_proxy: localhost,127.0.0.1
+    networks:
+      - squid-civicrm-aqbanking
+      - civicrm-aqbanking-db
     cap_drop:
       - ALL
     security_opt:
@@ -138,7 +171,7 @@ services:
       - no-new-privileges:true
     tmpfs:
       - /tmp
-  
+
   db:
     hostname: db
     image: docker.io/library/mariadb:12.0.2
@@ -154,7 +187,7 @@ services:
       MYSQL_USER: civicrm
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
       start_period: 10s
       interval: 10s
       timeout: 5s
@@ -163,6 +196,7 @@ services:
       - civicrm-app-db
       - civicrm-supercronic-db
       - civicrm-init-db
+      - civicrm-aqbanking-db
     cap_drop:
       - ALL
     security_opt:
@@ -188,7 +222,7 @@ services:
       civicrm-app:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:8081/nginx_status"]
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:8081/nginx_status" ]
       interval: 10s
       timeout: 5s
       start_period: 10s
@@ -210,6 +244,8 @@ volumes:
   civicrm-public:
   civicrm-private:
   civicrm-ext:
+  civicrm-aqbanking-trigger:
+
 
 networks:
   external:
@@ -235,4 +271,11 @@ networks:
   civicrm-supercronic-db:
     internal: true
   civicrm-app-nginx:
+    internal: true
+  squid-civicrm-aqbanking:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.31.253.0/24
+  civicrm-aqbanking-db:
     internal: true

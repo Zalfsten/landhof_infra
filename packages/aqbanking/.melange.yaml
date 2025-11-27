@@ -71,3 +71,8 @@ pipeline:
       cp /tmp/gwenhywfar-build/lib/libgwenhywfar.so* ${{targets.destdir}}/usr/lib/
       cp /tmp/aqbanking-build/lib/libaqbanking.so* ${{targets.destdir}}/usr/lib/
       cp -r /tmp/aqbanking-build/lib/aqbanking ${{targets.destdir}}/usr/lib/
+
+test:
+  pipeline:
+    - runs: |
+        aqbanking-cli --help
