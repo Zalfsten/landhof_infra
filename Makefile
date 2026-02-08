@@ -38,6 +38,7 @@ $(BUILD_VARS): .env | $(BUILD_DIR)
 	@echo "civicrm_version: $(CIVICRM_VERSION)" > $@
 	@echo "civicrm_cv_version: $(CIVICRM_CV_VERSION)" >> $@
 	@echo "civicrm_php_version: $(CIVICRM_PHP_VERSION)" >> $@
+	@echo "civicrm_banking_version: $(CIVICRM_BANKING_VERSION)" >> $@
 	@echo "supercronic_version: $(SUPERCRONIC_VERSION)" >> $@
 	@echo "squid_version: $(SQUID_VERSION)" >> $@
 
@@ -48,6 +49,7 @@ $(KEY_PRIV) $(KEY_PUB): | $(BUILD_DIR)
 # --- Generische Paket / Stamp Definitionen ---------------------------------
 # Liste aller lokal per melange zu bauenden Pakete (ein Verzeichnis unter packages/)
 PACKAGES := aqbanking civicrm squid-config supercronic
+PACKAGES_STAMPS := $(foreach p,$(PACKAGES),$($(p)))
 
 # Kombinierte Regel-Template: definiert zuerst die <pkg>_STAMP Variable und
 # erzeugt dann die konkrete Build-Regel für dieses Paket. Damit entfällt die
@@ -130,7 +132,7 @@ $(IMAGES_DIR)/squid.tar: images/squid.apko.yaml $(squid-config) $(KEY_PUB) | $(I
 
 keygen: $(KEY_PRIV) $(KEY_PUB)
 
-packages: $(PACKAGES)
+packages: $(PACKAGES_STAMPS)
 
 apko: $(APKO_TARS)
 
