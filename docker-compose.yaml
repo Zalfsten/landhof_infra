@@ -5,9 +5,6 @@ services:
     ports:
       - 3128:3128
     read_only: true
-    volumes:
-      - ./squid/civicrm.conf:/etc/squid/conf.d/civicrm.conf:ro
-      - ./squid/civicrm_whitelist.txt:/etc/squid/whitelists/civicrm_whitelist.txt:ro
     networks:
       - external
       - squid-civicrm-app

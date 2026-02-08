@@ -22,3 +22,16 @@ pipeline:
   - runs: |
       mkdir -p ${{targets.destdir}}/etc/squid/conf.d ${{targets.destdir}}/etc/squid/whitelists
       cp squid.conf ${{targets.destdir}}/etc/squid/squid.conf
+
+subpackages:
+
+  - name: squid-config-civicrm
+    description: "squid config for civicrm"
+
+    pipeline:
+      - runs: |
+         cp --parents conf.d/civicrm.conf whitelists/civicrm_whitelist.txt ${{targets.subpkgdir}}/etc/squid/
+
+    dependencies:
+      runtime:
+        - squid-config

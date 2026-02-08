@@ -7,6 +7,7 @@ contents:
   packages:
     - busybox
     - squid-config@local
+    - squid-config-civicrm@local
 
 cmd: /usr/sbin/squid -N -f /etc/squid/squid.conf
 
