@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/admin/setting/triggerbutton</path>
+    <title>Settings for the trigger button</title>
+    <page_callback>CRM_Admin_Form_Generic</page_callback>
+  </item>
+  <item>
+    <path>civicrm/triggerbutton/run</path>
+    <title>Triggerbutton Run</title>
+    <page_callback>CRM_Triggerbutton_Page_Run</page_callback>
+    <access_arguments>use triggerbutton</access_arguments>
+  </item>
+</menu>

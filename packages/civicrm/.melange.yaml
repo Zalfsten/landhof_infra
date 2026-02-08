@@ -2,6 +2,7 @@ vars:
   civicrm_version:
   civicrm_cv_version:
   civicrm_php_version:
+  civicrm_banking_version:
 
 package:
   name: civicrm
@@ -13,22 +14,24 @@ package:
 
   dependencies:
     runtime:
+      - acl
       - civicrm-cli
       - gnutar
-      - acl
 
 environment:
   contents:
     packages:
       - busybox
-      - curl
       - ca-certificates-bundle
+      - curl
+      - gnutar
 
 pipeline:
   - runs: |
       mkdir -p ${{targets.destdir}}/usr/share/civicrm
       curl -fsSL https://download.civicrm.org/civicrm-${{vars.civicrm_version}}-standalone.tar.gz -o ${{targets.destdir}}/usr/share/civicrm/civicrm.tar.gz
-      echo "AGPL-3.0" > ${{targets.destdir}}/usr/share/civicrm/LICENSE
+      curl -fsSL https://github.com/Project60/org.project60.banking/releases/download/${{vars.civicrm_banking_version}}/org.project60.banking-${{vars.civicrm_banking_version}}.tar.gz -o ${{targets.destdir}}/usr/share/civicrm/org.project60.banking.tar.gz
+      tar -czf ${{targets.destdir}}/usr/share/civicrm/de.feld-projekt.triggerbutton.tar.gz ext/de.feld-projekt.triggerbutton
   - runs: |
       mkdir -p ${{targets.destdir}}/usr/bin
       cp civicrm_init.sh ${{targets.destdir}}/usr/bin/civicrm_init.sh
@@ -87,8 +90,8 @@ subpackages:
           # copy healthcheck script
           cp php-fpm_healthcheck.php ${{targets.subpkgdir}}/usr/bin/php-fpm_healthcheck.php
           chmod +x ${{targets.subpkgdir}}/usr/bin/php-fpm_healthcheck.php
-      - runs: |
-          mkdir -p ${{targets.subpkgdir}}/run/php
+      # - runs: |
+      #     mkdir -p ${{targets.subpkgdir}}/run/php
 
     dependencies:
       runtime:

@@ -62,6 +62,8 @@ sign_keys="$(get_var_or_secret CIVICRM_SIGN_KEYS '')"
 
 log "INFO: Initializing CiviCRM..."
 tar -xf /usr/share/civicrm/civicrm.tar.gz -C /var/www/civicrm/ --strip-components=1
+tar -xf /usr/share/civicrm/org.project60.banking.tar.gz -C /var/www/civicrm/ext/ --strip-components=1
+tar -xf /usr/share/civicrm/de.feld-projekt.triggerbutton.tar.gz -C /var/www/civicrm/ext/ --strip-components=1
 
 log "INFO: Running cv core:install..."
 cv core:install -K -n \

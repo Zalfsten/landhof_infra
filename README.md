@@ -41,6 +41,21 @@ sudo chmod +x /usr/local/bin/apko
 echo "Installing sops $SOPS_VERSION for $ARCH..."
 sudo curl -fsSL "https://github.com/getsops/sops/releases/download/$SOPS_VERSION/sops-${SOPS_VERSION}.linux.$ARCH" -o /usr/local/bin/sops
 sudo chmod +x /usr/local/bin/sops
+
+# Install docker compose
+sudo apt remove $(dpkg --get-selections docker.io docker-compose docker-doc podman-docker containerd runc | cut -f1)
+sudo apt update
+sudo apt install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/debian
+Suites: $(. /etc/os-release && echo "$VERSION_CODENAME")
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
 ```
 
 ### podman compose on Debian
@@ -48,7 +63,7 @@ sudo chmod +x /usr/local/bin/sops
 To be more secure it's a good idea to use podman instead of docker. Install it like this Debian systems:
 
 ```bash
-apt update && apt install podman docker-compose-plugin
+apt update && apt install podman docker-compose docker-compose-plugin
 # tell podman to use the docker compose plugin
 mkdir -p ~/.config/containers
 echo '[engine]
