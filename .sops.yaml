@@ -1,3 +1,4 @@
 creation_rules:
   - path_regex: \.env.enc.yaml$
     pgp: 60615371FB5A3B9132CEE28CECCBB35F6517209B
+    age: age1w485pyzfnz7vk2vru8esqu5s6640ap38x9em4yl2ev8gjz9neylsnyt5ev

@@ -15,9 +15,7 @@
 		// 	"version": "20.10",
 		// 	"dockerDashComposeVersion": "v2"
 		// },
-		"ghcr.io/devcontainers-extra/features/sops:1": {
-			"version": "latest"
-		}
+		"ghcr.io/devcontainers-extra/features/sops:1": {}
 	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
@@ -25,7 +23,10 @@
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": {
-		"make apk cache": "mkdir -p apk_cache"
+		"make apk cache": "mkdir -p apk_cache",
+		"install age": [
+			"sudo", "/usr/bin/bash", "./.devcontainer/install-age.sh"
+		]
 	},
 
 	// Configure tool-specific properties.
