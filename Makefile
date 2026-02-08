@@ -4,6 +4,7 @@ ifneq ("$(wildcard .env)","")
 endif
 
 ARCH := $(shell uname -m)
+ARCH_ALT := $(shell dpkg --print-architecture)
 BUILD_DIR := build
 PKG_DIR := $(BUILD_DIR)/packages/$(ARCH)
 
@@ -139,7 +140,10 @@ apko: $(APKO_TARS)
 images: $(APKO_TARS)
 	@echo "Loading built images into $(CONTAINER_RUNTIME)"
 	@for tar in $(APKO_TARS); do \
-		$(CONTAINER_RUNTIME) load -i "$$tar"; \
+		output=$$($(CONTAINER_RUNTIME) load -i "$$tar"); \
+		full_tag=$$(echo "$$output" | awk -F': ' '{print $$2}'); \
+		base_tag=$$(echo $$full_tag | sed "s/-$(ARCH_ALT)//"); \
+		$(CONTAINER_RUNTIME) tag $$full_tag $$base_tag; \
 	done
 
 up: images

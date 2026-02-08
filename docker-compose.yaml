@@ -1,6 +1,6 @@
 services:
   squid:
-    image: docker.io/squid:${SQUID_VERSION}-amd64
+    image: docker.io/squid:${SQUID_VERSION}
     restart: unless-stopped
     ports:
       - 3128:3128
@@ -25,7 +25,7 @@ services:
       - no-new-privileges:true
 
   civicrm-app:
-    image: docker.io/civicrm-php-fpm:${CIVICRM_VERSION}-amd64
+    image: docker.io/civicrm-php-fpm:${CIVICRM_VERSION}
     restart: unless-stopped
     depends_on:
       squid:
@@ -62,7 +62,7 @@ services:
       - /tmp
 
   civicrm-supercronic:
-    image: docker.io/civicrm-supercronic:${CIVICRM_VERSION}-amd64
+    image: docker.io/civicrm-supercronic:${CIVICRM_VERSION}
     restart: unless-stopped
     depends_on:
       squid:
@@ -98,7 +98,7 @@ services:
       - /tmp
 
   civicrm-aqbanking:
-    image: docker.io/civicrm-aqbanking:${CIVICRM_VERSION}-amd64
+    image: docker.io/civicrm-aqbanking:${CIVICRM_VERSION}
     restart: unless-stopped
     depends_on:
       squid:
@@ -130,7 +130,7 @@ services:
       - /tmp
 
   civicrm-init:
-    image: docker.io/civicrm-init:${CIVICRM_VERSION}-amd64
+    image: docker.io/civicrm-init:${CIVICRM_VERSION}
     restart: "no"
     depends_on:
       squid:

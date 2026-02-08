@@ -60,10 +60,16 @@ EOF
 
 ### podman compose on Debian
 
+Unfortunately radxa OS is based on Debian bullseye, which only comes with podman 3, which in turn does not
+support `podman compose`. Also these is no backports repository any more (at least not for the arm64
+architecture). No easy way could be found to install a newer podman version on bullseye.
+
+```bash
+
 To be more secure it's a good idea to use podman instead of docker. Install it like this Debian systems:
 
 ```bash
-apt update && apt install podman docker-compose docker-compose-plugin
+apt update && apt install podman docker-compose-plugin
 # tell podman to use the docker compose plugin
 mkdir -p ~/.config/containers
 echo '[engine]
