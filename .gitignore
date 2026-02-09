@@ -1,4 +1,4 @@
 **/*.decrypted.*
-_build/
+dist/
 apk_cache/
 scratch/
